@@ -1,3 +1,4 @@
+'use client'
 import { MediaBlock } from '@/blocks/MediaBlock/Component'
 import {
   DefaultNodeTypes,
@@ -8,23 +9,30 @@ import {
 import {
   JSXConvertersFunction,
   LinkJSXConverter,
-  RichText as ConvertRichText,
+  RichText as PayloadRichText,
 } from '@payloadcms/richtext-lexical/react'
+import { TypographyJSXConverters } from 'payload-lexical-typography/converters'
 
 import { CodeBlock, CodeBlockProps } from '@/blocks/Code/Component'
-
-import type {
-  BannerBlock as BannerBlockProps,
-  CallToActionBlock as CTABlockProps,
-  MediaBlock as MediaBlockProps,
-} from '@/payload-types'
-import { BannerBlock } from '@/blocks/Banner/Component'
-import { CallToActionBlock } from '@/blocks/CallToAction/Component'
+import type { MediaBlock as MediaBlockProps } from '@/payload-types'
 import { cn } from '@/utilities/ui'
+
+// Define the shape of a serialized image node from your custom editor
+interface SerializedImageNode {
+  type: 'image'
+  src: string
+  altText: string
+  width?: number
+  height?: number
+  maxWidth?: number
+  children?: any[]
+  version: number
+}
 
 type NodeTypes =
   | DefaultNodeTypes
-  | SerializedBlockNode<CTABlockProps | MediaBlockProps | BannerBlockProps | CodeBlockProps>
+  | SerializedBlockNode<MediaBlockProps | CodeBlockProps>
+  | SerializedImageNode
 
 const internalDocToHref = ({ linkNode }: { linkNode: SerializedLinkNode }) => {
   const { value, relationTo } = linkNode.fields.doc!
@@ -38,34 +46,100 @@ const internalDocToHref = ({ linkNode }: { linkNode: SerializedLinkNode }) => {
 const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) => ({
   ...defaultConverters,
   ...LinkJSXConverter({ internalDocToHref }),
+  ...TypographyJSXConverters,
+
+  // Custom text converter to preserve inline styles
+  text: ({ node }) => {
+    const { text, style } = node
+    if (style) {
+      const styleObj: React.CSSProperties = {}
+      if (typeof style === 'string') {
+        style.split(';').forEach((decl) => {
+          const [prop, value] = decl.split(':').map((s) => s.trim())
+          if (prop && value) {
+            const camelProp = prop.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())
+            ;(styleObj as any)[camelProp] = value
+          }
+        })
+      } else if (typeof style === 'object') {
+        Object.assign(styleObj, style)
+      }
+      return <span style={styleObj}>{text}</span>
+    }
+    return <span>{text}</span>
+  },
+
   blocks: {
-    banner: ({ node }) => <BannerBlock className="col-start-2 mb-4" {...node.fields} />,
     mediaBlock: ({ node }) => (
       <MediaBlock
         className="col-start-1 col-span-3"
         imgClassName="m-0"
-        {...node.fields}
+        {...(node.fields as any)} // ✅ Silences TypeScript while preserving all data
         captionClassName="mx-auto max-w-[48rem]"
         enableGutter={false}
-        disableInnerContainer={true}
+        disableInnerContainer
       />
     ),
     code: ({ node }) => <CodeBlock className="col-start-2" {...node.fields} />,
-    cta: ({ node }) => <CallToActionBlock {...node.fields} />,
+    image: ({ node }: { node: SerializedImageNode }) => {
+      const { src, altText, width } = node
+      return (
+        <img
+          src={src}
+          alt={altText || ''}
+          style={{
+            width: width ? `${width}px` : 'auto',
+            maxWidth: '100%',
+            height: 'auto',
+          }}
+        />
+      )
+    },
   },
 })
 
 type Props = {
-  data: DefaultTypedEditorState
+  data: any
   enableGutter?: boolean
   enableProse?: boolean
 } & React.HTMLAttributes<HTMLDivElement>
 
+const normalizeEditorState = (data: any): DefaultTypedEditorState => {
+  if (Array.isArray(data)) {
+    return {
+      root: {
+        children: data,
+        direction: null,
+        format: '',
+        indent: 0,
+        type: 'root',
+        version: 1,
+      },
+    } as DefaultTypedEditorState
+  }
+  if (data && typeof data === 'object' && 'root' in data) {
+    return data as DefaultTypedEditorState
+  }
+  return {
+    root: {
+      children: [],
+      direction: null,
+      format: '',
+      indent: 0,
+      type: 'root',
+      version: 1,
+    },
+  } as DefaultTypedEditorState
+}
+
 export default function RichText(props: Props) {
-  const { className, enableProse = true, enableGutter = true, ...rest } = props
+  const { className, enableProse = true, enableGutter = true, data, ...rest } = props
+  const editorState = normalizeEditorState(data)
+
   return (
-    <ConvertRichText
+    <PayloadRichText
       converters={jsxConverters}
+      data={editorState}
       className={cn(
         'payload-richtext',
         {

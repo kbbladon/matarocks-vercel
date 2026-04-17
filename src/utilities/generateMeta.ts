@@ -1,21 +1,16 @@
 import type { Metadata } from 'next'
-
 import type { Media, Page, Post, Config } from '../payload-types'
-
 import { mergeOpenGraph } from './mergeOpenGraph'
 import { getServerSideURL } from './getURL'
 
-const getImageURL = (image?: Media | Config['db']['defaultIDType'] | null) => {
-  const serverUrl = getServerSideURL()
-
+export const getImageUrl = (image: any, serverUrl: string): string => {
   let url = serverUrl + '/website-template-OG.webp'
-
   if (image && typeof image === 'object' && 'url' in image) {
-    const ogUrl = image.sizes?.og?.url
-
+    // Safely access any size key
+    const sizes = image.sizes as any
+    const ogUrl = sizes?.og?.url
     url = ogUrl ? serverUrl + ogUrl : serverUrl + image.url
   }
-
   return url
 }
 
@@ -23,27 +18,22 @@ export const generateMeta = async (args: {
   doc: Partial<Page> | Partial<Post> | null
 }): Promise<Metadata> => {
   const { doc } = args
+  const ogImage = getImageUrl(doc?.meta?.image, getServerSideURL())
 
-  const ogImage = getImageURL(doc?.meta?.image)
-
-  const title = doc?.meta?.title
-    ? doc?.meta?.title + ' | Payload Website Template'
-    : 'Payload Website Template'
+  // Use meta title > doc title > fallback site name
+  const pageTitle = doc?.meta?.title || doc?.title || ''
+  const siteName = 'Mata Rocks Resort'
+  const title = pageTitle ? `${pageTitle} | ${siteName}` : siteName
 
   return {
-    description: doc?.meta?.description,
+    title,
+    description: doc?.meta?.description || '',
+    keywords: (doc?.meta as any)?.keywords || '',
     openGraph: mergeOpenGraph({
       description: doc?.meta?.description || '',
-      images: ogImage
-        ? [
-            {
-              url: ogImage,
-            },
-          ]
-        : undefined,
+      images: ogImage ? [{ url: ogImage }] : undefined,
       title,
       url: Array.isArray(doc?.slug) ? doc?.slug.join('/') : '/',
     }),
-    title,
   }
 }

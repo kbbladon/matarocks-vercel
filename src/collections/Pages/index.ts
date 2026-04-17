@@ -12,7 +12,17 @@ import { slugField } from 'payload'
 import { populatePublishedAt } from '../../hooks/populatePublishedAt'
 import { generatePreviewPath } from '../../utilities/generatePreviewPath'
 import { revalidateDelete, revalidatePage } from './hooks/revalidatePage'
-
+import { CardGrid } from '@/blocks/CardGrid/config'
+import { ParallaxHero } from '@/blocks/ParallaxHero/config'
+import { SplitContent } from '@/blocks/SplitContent/config'
+import { VideoHero } from '@/blocks/VideoHero/config'
+import { ImageGrid } from '@/blocks/ImageGrid/config'
+import { CrossSectionCTA } from '@/blocks/CrossSectionCTA/config'
+import { Cards } from '@/blocks/Cards/config'
+import { SlickerSlide } from '@/blocks/SlickerSlide/config'
+import { MenuTabs } from '@/blocks/MenuTabs/config'
+import { MenuTable } from '@/blocks/MenuTable/config'
+import { ImageRow } from '@/blocks/ImageRow/config'
 import {
   MetaDescriptionField,
   MetaImageField,
@@ -29,9 +39,6 @@ export const Pages: CollectionConfig<'pages'> = {
     read: authenticatedOrPublished,
     update: authenticated,
   },
-  // This config controls what's populated by default when a page is referenced
-  // https://payloadcms.com/docs/queries/select#defaultpopulate-collection-config-property
-  // Type safe if the collection slug generic is passed to `CollectionConfig` - `CollectionConfig<'pages'>
   defaultPopulate: {
     title: true,
     slug: true,
@@ -69,10 +76,81 @@ export const Pages: CollectionConfig<'pages'> = {
         },
         {
           fields: [
+            // ---------- NEW PAGE BACKGROUND FIELDS ----------
+            {
+              type: 'collapsible',
+              label: 'Page Background (optional)',
+              fields: [
+                {
+                  name: 'backgroundImage',
+                  type: 'upload',
+                  relationTo: 'media',
+                  label: 'Background Image',
+                  admin: {
+                    description: 'Leave empty to use the default site background.',
+                  },
+                },
+                {
+                  name: 'overlayColor',
+                  type: 'text',
+                  label: 'Overlay Color',
+                  defaultValue: '#0f3d2e',
+                  admin: {
+                    components: {
+                      Field: '@/components/ColorPicker',
+                    } as any,
+                    description: 'Applied as a transparent overlay over the background image.',
+                  },
+                },
+                {
+                  name: 'overlayOpacity',
+                  type: 'number',
+                  label: 'Overlay Opacity',
+                  defaultValue: 0.7,
+                  min: 0,
+                  max: 1,
+                  // step removed – users can still enter decimal values manually
+                  admin: {
+                    description: '0 = fully transparent, 1 = solid colour.',
+                  },
+                },
+                {
+                  name: 'contentWidth',
+                  type: 'select',
+                  label: 'Content Width',
+                  defaultValue: 'contained',
+                  options: [
+                    { label: 'Contained (max-width, centered)', value: 'contained' },
+                    { label: 'Full Width (edge to edge)', value: 'full' },
+                  ],
+                  admin: {
+                    description: 'How the inner blocks are constrained horizontally.',
+                  },
+                },
+              ],
+            },
+            // ---------- END OF BACKGROUND FIELDS ----------
             {
               name: 'layout',
               type: 'blocks',
-              blocks: [CallToAction, Content, MediaBlock, Archive, FormBlock],
+              blocks: [
+                CallToAction,
+                Content,
+                MediaBlock,
+                Archive,
+                FormBlock,
+                CardGrid,
+                ParallaxHero,
+                SplitContent,
+                VideoHero,
+                ImageGrid,
+                CrossSectionCTA,
+                Cards,
+                SlickerSlide,
+                MenuTabs,
+                MenuTable,
+                ImageRow,
+              ],
               required: true,
               admin: {
                 initCollapsed: true,
@@ -96,13 +174,17 @@ export const Pages: CollectionConfig<'pages'> = {
             MetaImageField({
               relationTo: 'media',
             }),
-
             MetaDescriptionField({}),
+            {
+              name: 'keywords',
+              type: 'text',
+              label: 'Meta Keywords (comma separated)',
+              admin: {
+                description: 'Separate keywords with commas',
+              },
+            },
             PreviewField({
-              // if the `generateUrl` function is configured
               hasGenerateFn: true,
-
-              // field paths to match the target field for data
               titlePath: 'meta.title',
               descriptionPath: 'meta.description',
             }),
@@ -127,7 +209,7 @@ export const Pages: CollectionConfig<'pages'> = {
   versions: {
     drafts: {
       autosave: {
-        interval: 100, // We set this interval for optimal live preview
+        interval: 100,
       },
       schedulePublish: true,
     },

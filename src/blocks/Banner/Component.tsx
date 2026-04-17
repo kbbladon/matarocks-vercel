@@ -1,12 +1,9 @@
-import type { BannerBlock as BannerBlockProps } from 'src/payload-types'
-
+import type { BannerBlock as BannerBlockProps } from '@/payload-types'
 import { cn } from '@/utilities/ui'
 import React from 'react'
-import RichText from '@/components/RichText'
+import RichText from '@/components/RichText' // adjust path if necessary
 
-type Props = {
-  className?: string
-} & BannerBlockProps
+type Props = { className?: string } & BannerBlockProps
 
 export const BannerBlock: React.FC<Props> = ({ className, content, style }) => {
   return (

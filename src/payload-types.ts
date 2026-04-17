@@ -78,16 +78,11 @@ export interface Config {
     search: Search;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
-    'payload-folders': FolderInterface;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {
-    'payload-folders': {
-      documentsAndFolders: 'payload-folders' | 'media';
-    };
-  };
+  collectionsJoins: {};
   collectionsSelect: {
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
@@ -100,7 +95,6 @@ export interface Config {
     search: SearchSelect<false> | SearchSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
-    'payload-folders': PayloadFoldersSelect<false> | PayloadFoldersSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -112,10 +106,12 @@ export interface Config {
   globals: {
     header: Header;
     footer: Footer;
+    settings: Setting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    settings: SettingsSelect<false> | SettingsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -159,7 +155,26 @@ export interface Page {
   id: string;
   title: string;
   hero: {
-    type: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact';
+    type: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact' | 'slider' | 'lowGradient';
+    gradientTitle?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    gradientSubtitle?: string | null;
+    gradientBackground?: (string | null) | Media;
+    gradientOverlayOpacity?: number | null;
+    gradientHeight?: ('400px' | '520px' | '600px' | '100vh') | null;
     richText?: {
       root: {
         type: string;
@@ -200,8 +215,647 @@ export interface Page {
         }[]
       | null;
     media?: (string | null) | Media;
+    slider?: {
+      mode?: ('static' | 'dynamic') | null;
+      staticContent?: {
+        /**
+         * Use the toolbar to add formatted text and colors.
+         */
+        overlayText?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        cta?: {
+          label?: string | null;
+          url?: string | null;
+        };
+      };
+      slides?:
+        | {
+            media: string | Media;
+            id?: string | null;
+          }[]
+        | null;
+      autoplay?: boolean | null;
+      autoplaySpeed?: number | null;
+      showArrows?: boolean | null;
+      showDots?: boolean | null;
+      height?: ('full' | 'large' | 'medium') | null;
+      animationPreset?: ('slide' | 'fade' | 'cinematic') | null;
+      overlayColor?: string | null;
+    };
   };
-  layout: (CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock)[];
+  /**
+   * Leave empty to use the default site background.
+   */
+  backgroundImage?: (string | null) | Media;
+  /**
+   * Applied as a transparent overlay over the background image.
+   */
+  overlayColor?: string | null;
+  /**
+   * 0 = fully transparent, 1 = solid colour.
+   */
+  overlayOpacity?: number | null;
+  /**
+   * How the inner blocks are constrained horizontally.
+   */
+  contentWidth?: ('contained' | 'full') | null;
+  layout: (
+    | CallToActionBlock
+    | ContentBlock
+    | MediaBlock
+    | ArchiveBlock
+    | FormBlock
+    | {
+        heading?: string | null;
+        width?: ('contained' | 'full') | null;
+        cardHeight?: number | null;
+        cardColumns?: ('2' | '3' | '4') | null;
+        overlayColor?: string | null;
+        scrollAnimation?: ('none' | 'fadeUp' | 'fade' | 'slide') | null;
+        items?:
+          | {
+              title: string;
+              richDescription?: {
+                root: {
+                  type: string;
+                  children: {
+                    type: any;
+                    version: number;
+                    [k: string]: unknown;
+                  }[];
+                  direction: ('ltr' | 'rtl') | null;
+                  format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                  indent: number;
+                  version: number;
+                };
+                [k: string]: unknown;
+              } | null;
+              price?: number | null;
+              image: string | Media;
+              features?:
+                | {
+                    text?: string | null;
+                    id?: string | null;
+                  }[]
+                | null;
+              cta?: {
+                label?: string | null;
+                type?: ('internal' | 'external') | null;
+                reference?: {
+                  relationTo: 'pages';
+                  value: string | Page;
+                } | null;
+                url?: string | null;
+                newTab?: boolean | null;
+              };
+              id?: string | null;
+            }[]
+          | null;
+        enableFooterCta?: boolean | null;
+        footerCta?: {
+          label: string;
+          link: string;
+          newTab?: boolean | null;
+        };
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'cardGrid';
+      }
+    | {
+        backgroundImage: string | Media;
+        overlay?: {
+          type?: ('solid' | 'gradient') | null;
+          /**
+           * Use rgba() or hex with opacity
+           */
+          solidColor?: string | null;
+          gradientDirection?: ('to bottom' | 'to top' | 'to right' | 'to left' | '135deg' | '45deg') | null;
+          gradientStart?: string | null;
+          gradientEnd?: string | null;
+          /**
+           * Where the first color ends (percentage)
+           */
+          gradientStopPosition?: number | null;
+        };
+        paddingTop?: number | null;
+        paddingBottom?: number | null;
+        /**
+         * Set a custom height (CSS units like vh, px, %)
+         */
+        height?: string | null;
+        /**
+         * Color for the small welcome text above the title.
+         */
+        welcomeTextColor?: string | null;
+        /**
+         * Color for the main title text (fallback for unformatted text).
+         */
+        titleColor?: string | null;
+        /**
+         * Color for the description text.
+         */
+        descriptionColor?: string | null;
+        title?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        welcomeText?: string | null;
+        description?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        cta?: {
+          label?: string | null;
+          type?: ('internal' | 'external') | null;
+          reference?: {
+            relationTo: 'pages';
+            value: string | Page;
+          } | null;
+          url?: string | null;
+          newTab?: boolean | null;
+        };
+        scrollAnimation?: ('none' | 'fadeUp' | 'fade' | 'slideLeft' | 'slideRight') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'parallaxHero';
+      }
+    | {
+        title?: string | null;
+        content: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        };
+        backgroundImage: string | Media;
+        /**
+         * Dark overlay on the left column to improve text readability
+         */
+        overlayOpacity?: number | null;
+        textColor?: string | null;
+        verticalPadding?: ('sm' | 'md' | 'lg' | 'xl') | null;
+        enableButton?: boolean | null;
+        button?: {
+          label: string;
+          link: string;
+          newTab?: boolean | null;
+          alignment?: ('left' | 'center' | 'right') | null;
+        };
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'splitContent';
+      }
+    | {
+        mediaType?: ('youtube' | 'upload') | null;
+        /**
+         * Example: https://www.youtube.com/watch?v=pdzR0Tv8fcQ or just the ID
+         */
+        youtubeUrl?: string | null;
+        uploadedVideo?: (string | null) | Media;
+        /**
+         * Optional – replaces video on mobile devices to improve performance.
+         */
+        mobilePlaceholder?: (string | null) | Media;
+        autoplay?: boolean | null;
+        loop?: boolean | null;
+        muted?: boolean | null;
+        controls?: boolean | null;
+        overlayOpacity?: number | null;
+        title?: string | null;
+        subtitle?: string | null;
+        description?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        enableButton?: boolean | null;
+        button?: {
+          label?: string | null;
+          link?: string | null;
+          newTab?: boolean | null;
+        };
+        verticalPadding?: ('sm' | 'md' | 'lg' | 'xl') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'videoHero';
+      }
+    | {
+        heading?: string | null;
+        subheading?: string | null;
+        items?:
+          | {
+              richContent?: {
+                root: {
+                  type: string;
+                  children: {
+                    type: any;
+                    version: number;
+                    [k: string]: unknown;
+                  }[];
+                  direction: ('ltr' | 'rtl') | null;
+                  format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                  indent: number;
+                  version: number;
+                };
+                [k: string]: unknown;
+              } | null;
+              title?: string | null;
+              image: string | Media;
+              link?: string | null;
+              buttonLabel?: string | null;
+              newTab?: boolean | null;
+              id?: string | null;
+            }[]
+          | null;
+        transitionSpeed?: ('slow' | 'medium' | 'fast') | null;
+        columnHeight?: ('normal' | 'tall' | 'xtall') | null;
+        desktopHeight?: ('default' | 'taller' | 'xtall' | 'custom') | null;
+        customDesktopHeight?: number | null;
+        buttonStyle?: ('gold' | 'white') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'imageGrid';
+      }
+    | {
+        heading?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        items?:
+          | {
+              icon?:
+                | ('wifi' | 'pool' | 'beach' | 'umbrella' | 'sun' | 'restaurant' | 'spa' | 'gym' | 'parking' | 'pet')
+                | null;
+              titlePrefix?: string | null;
+              title: string;
+              description: {
+                root: {
+                  type: string;
+                  children: {
+                    type: any;
+                    version: number;
+                    [k: string]: unknown;
+                  }[];
+                  direction: ('ltr' | 'rtl') | null;
+                  format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                  indent: number;
+                  version: number;
+                };
+                [k: string]: unknown;
+              };
+              link: string;
+              newTab?: boolean | null;
+              id?: string | null;
+            }[]
+          | null;
+        columns?: ('2' | '3' | '4') | null;
+        backgroundColor?: string | null;
+        verticalPadding?: ('sm' | 'md' | 'lg' | 'xl') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'crossSectionCta';
+      }
+    | {
+        heading?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        items?:
+          | {
+              image: string | Media;
+              buttonLabel?: string | null;
+              buttonLink: string;
+              newTab?: boolean | null;
+              /**
+               * Use the toolbar to format title and description freely.
+               */
+              richContent: {
+                root: {
+                  type: string;
+                  children: {
+                    type: any;
+                    version: number;
+                    [k: string]: unknown;
+                  }[];
+                  direction: ('ltr' | 'rtl') | null;
+                  format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                  indent: number;
+                  version: number;
+                };
+                [k: string]: unknown;
+              };
+              id?: string | null;
+            }[]
+          | null;
+        width?: ('contained' | 'full') | null;
+        columns?: ('2' | '3' | '4') | null;
+        cardHeight?: ('sm' | 'md' | 'tall' | 'xtall') | null;
+        backgroundColor?: string | null;
+        verticalPadding?: ('sm' | 'md' | 'lg' | 'xl') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'cards';
+      }
+    | {
+        heading?: string | null;
+        slides?:
+          | {
+              image: string | Media;
+              title?: string | null;
+              description?: {
+                root: {
+                  type: string;
+                  children: {
+                    type: any;
+                    version: number;
+                    [k: string]: unknown;
+                  }[];
+                  direction: ('ltr' | 'rtl') | null;
+                  format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                  indent: number;
+                  version: number;
+                };
+                [k: string]: unknown;
+              } | null;
+              buttonLabel?: string | null;
+              buttonLink?: string | null;
+              newTab?: boolean | null;
+              id?: string | null;
+            }[]
+          | null;
+        showArrows?: boolean | null;
+        autoplay?: boolean | null;
+        autoplaySpeed?: number | null;
+        showDots?: boolean | null;
+        slidesPerView?: ('1' | '2' | '3' | '4') | null;
+        gap?: number | null;
+        /**
+         * Used only if no gradient is provided.
+         */
+        backgroundColor?: string | null;
+        /**
+         * Applies to the solid background colour.
+         */
+        backgroundOpacity?: number | null;
+        /**
+         * Example: linear-gradient(135deg, #ffd28d, #040d10). Overrides solid colour.
+         */
+        backgroundGradient?: string | null;
+        verticalPadding?: ('sm' | 'md' | 'lg' | 'xl') | null;
+        width?: ('contained' | 'full') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'slickerSlide';
+      }
+    | {
+        heading?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        tabs?:
+          | {
+              tabName: string;
+              items?:
+                | {
+                    title: string;
+                    description?: string | null;
+                    price?: string | null;
+                    id?: string | null;
+                  }[]
+                | null;
+              id?: string | null;
+            }[]
+          | null;
+        columns?: ('1' | '2' | '3') | null;
+        width?: ('contained' | 'full') | null;
+        backgroundColor?: string | null;
+        verticalPadding?: ('sm' | 'md' | 'lg' | 'xl') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'menuTabs';
+      }
+    | {
+        heading?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        subheading?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        categories?:
+          | {
+              tabLabel: string;
+              sections?:
+                | {
+                    sectionHeading?: {
+                      root: {
+                        type: string;
+                        children: {
+                          type: any;
+                          version: number;
+                          [k: string]: unknown;
+                        }[];
+                        direction: ('ltr' | 'rtl') | null;
+                        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                        indent: number;
+                        version: number;
+                      };
+                      [k: string]: unknown;
+                    } | null;
+                    menuItems?:
+                      | {
+                          itemName: {
+                            root: {
+                              type: string;
+                              children: {
+                                type: any;
+                                version: number;
+                                [k: string]: unknown;
+                              }[];
+                              direction: ('ltr' | 'rtl') | null;
+                              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                              indent: number;
+                              version: number;
+                            };
+                            [k: string]: unknown;
+                          };
+                          description?: {
+                            root: {
+                              type: string;
+                              children: {
+                                type: any;
+                                version: number;
+                                [k: string]: unknown;
+                              }[];
+                              direction: ('ltr' | 'rtl') | null;
+                              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                              indent: number;
+                              version: number;
+                            };
+                            [k: string]: unknown;
+                          } | null;
+                          price: string;
+                          id?: string | null;
+                        }[]
+                      | null;
+                    id?: string | null;
+                  }[]
+                | null;
+              id?: string | null;
+            }[]
+          | null;
+        columnsPerRow?: ('2' | '3') | null;
+        tableStyle?: ('default' | 'striped' | 'bordered') | null;
+        /**
+         * Leave empty or set to transparent for no background.
+         */
+        backgroundColor?: string | null;
+        /**
+         * Only applies if a background color is selected.
+         */
+        backgroundOpacity?: number | null;
+        verticalPadding?: ('sm' | 'md' | 'lg' | 'xl') | null;
+        width?: ('contained' | 'full') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'menuTable';
+      }
+    | {
+        images?:
+          | {
+              image: string | Media;
+              alt?: string | null;
+              link?: string | null;
+              newTab?: boolean | null;
+              id?: string | null;
+            }[]
+          | null;
+        imageHeight?: number | null;
+        gap?: number | null;
+        desktopWidth?: ('45%' | '30%' | '22%' | '100%') | null;
+        mobileWidth?: ('85%' | '100%') | null;
+        borderRadius?: string | null;
+        /**
+         * CSS box-shadow value. Leave empty to disable.
+         */
+        boxShadow?: string | null;
+        justifyContent?: ('space-around' | 'space-between' | 'center' | 'flex-start' | 'flex-end') | null;
+        verticalPadding?: ('sm' | 'md' | 'lg' | 'xl') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'imageRow';
+      }
+  )[];
   meta?: {
     title?: string | null;
     /**
@@ -209,6 +863,10 @@ export interface Page {
      */
     image?: (string | null) | Media;
     description?: string | null;
+    /**
+     * Separate keywords with commas
+     */
+    keywords?: string | null;
   };
   publishedAt?: string | null;
   /**
@@ -219,6 +877,57 @@ export interface Page {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: string;
+  alt: string;
+  caption?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  cloudinaryPublicId?: string | null;
+  cloudinaryUrl?: string | null;
+  cloudinaryResourceType?: string | null;
+  cloudinaryFormat?: string | null;
+  cloudinaryVersion?: number | null;
+  /**
+   * Direct URL to the original file without transformations
+   */
+  originalUrl?: string | null;
+  /**
+   * URL with applied transformations
+   */
+  transformedUrl?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  /**
+   * File size in bytes
+   */
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+  sizes?: {};
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -272,135 +981,16 @@ export interface Post {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: string;
-  alt?: string | null;
-  caption?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  folder?: (string | null) | FolderInterface;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
-  sizes?: {
-    thumbnail?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    square?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    small?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    medium?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    large?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    xlarge?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    og?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-  };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-folders".
- */
-export interface FolderInterface {
-  id: string;
-  name: string;
-  folder?: (string | null) | FolderInterface;
-  documentsAndFolders?: {
-    docs?: (
-      | {
-          relationTo?: 'payload-folders';
-          value: string | FolderInterface;
-        }
-      | {
-          relationTo?: 'media';
-          value: string | Media;
-        }
-    )[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  folderType?: 'media'[] | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories".
  */
 export interface Category {
   id: string;
   title: string;
+  slug?: string | null;
   /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   * Optional image for this category
    */
-  generateSlug?: boolean | null;
-  slug: string;
+  image?: (string | null) | Media;
   parent?: (string | null) | Category;
   breadcrumbs?:
     | {
@@ -511,6 +1101,10 @@ export interface ContentBlock {
           [k: string]: unknown;
         } | null;
         enableLink?: boolean | null;
+        /**
+         * Align content inside the column
+         */
+        alignment?: ('left' | 'center' | 'right') | null;
         link?: {
           type?: ('reference' | 'custom') | null;
           newTab?: boolean | null;
@@ -533,6 +1127,18 @@ export interface ContentBlock {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Maximum width of the content container. Leave empty for no max width.
+   */
+  containerMaxWidth?: number | null;
+  /**
+   * Leave empty or set to transparent for no background.
+   */
+  backgroundColor?: string | null;
+  /**
+   * Only applies if a background color is selected.
+   */
+  backgroundOpacity?: number | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'content';
@@ -543,6 +1149,34 @@ export interface ContentBlock {
  */
 export interface MediaBlock {
   media: string | Media;
+  /**
+   * Leave empty for full width (within container)
+   */
+  width?: number | null;
+  alignment?: ('left' | 'center' | 'right') | null;
+  enableBackground?: boolean | null;
+  backgroundColor?: string | null;
+  backgroundPadding?: ('0' | 'p-4' | 'p-6' | 'p-8') | null;
+  roundedCorners?: ('rounded-none' | 'rounded' | 'rounded-md' | 'rounded-lg' | 'rounded-xl' | 'rounded-full') | null;
+  enableOverlay?: boolean | null;
+  overlayOpacity?: number | null;
+  caption?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  link?: string | null;
+  newTab?: boolean | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'mediaBlock';
@@ -588,21 +1222,11 @@ export interface ArchiveBlock {
 export interface FormBlock {
   form: string | Form;
   enableIntro?: boolean | null;
-  introContent?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
+  introContent?:
+    | {
         [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
+      }[]
+    | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'formBlock';
@@ -1006,10 +1630,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'search';
         value: string | Search;
-      } | null)
-    | ({
-        relationTo: 'payload-folders';
-        value: string | FolderInterface;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1063,6 +1683,11 @@ export interface PagesSelect<T extends boolean = true> {
     | T
     | {
         type?: T;
+        gradientTitle?: T;
+        gradientSubtitle?: T;
+        gradientBackground?: T;
+        gradientOverlayOpacity?: T;
+        gradientHeight?: T;
         richText?: T;
         links?:
           | T
@@ -1080,7 +1705,40 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
             };
         media?: T;
+        slider?:
+          | T
+          | {
+              mode?: T;
+              staticContent?:
+                | T
+                | {
+                    overlayText?: T;
+                    cta?:
+                      | T
+                      | {
+                          label?: T;
+                          url?: T;
+                        };
+                  };
+              slides?:
+                | T
+                | {
+                    media?: T;
+                    id?: T;
+                  };
+              autoplay?: T;
+              autoplaySpeed?: T;
+              showArrows?: T;
+              showDots?: T;
+              height?: T;
+              animationPreset?: T;
+              overlayColor?: T;
+            };
       };
+  backgroundImage?: T;
+  overlayColor?: T;
+  overlayOpacity?: T;
+  contentWidth?: T;
   layout?:
     | T
     | {
@@ -1089,6 +1747,312 @@ export interface PagesSelect<T extends boolean = true> {
         mediaBlock?: T | MediaBlockSelect<T>;
         archive?: T | ArchiveBlockSelect<T>;
         formBlock?: T | FormBlockSelect<T>;
+        cardGrid?:
+          | T
+          | {
+              heading?: T;
+              width?: T;
+              cardHeight?: T;
+              cardColumns?: T;
+              overlayColor?: T;
+              scrollAnimation?: T;
+              items?:
+                | T
+                | {
+                    title?: T;
+                    richDescription?: T;
+                    price?: T;
+                    image?: T;
+                    features?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    cta?:
+                      | T
+                      | {
+                          label?: T;
+                          type?: T;
+                          reference?: T;
+                          url?: T;
+                          newTab?: T;
+                        };
+                    id?: T;
+                  };
+              enableFooterCta?: T;
+              footerCta?:
+                | T
+                | {
+                    label?: T;
+                    link?: T;
+                    newTab?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        parallaxHero?:
+          | T
+          | {
+              backgroundImage?: T;
+              overlay?:
+                | T
+                | {
+                    type?: T;
+                    solidColor?: T;
+                    gradientDirection?: T;
+                    gradientStart?: T;
+                    gradientEnd?: T;
+                    gradientStopPosition?: T;
+                  };
+              paddingTop?: T;
+              paddingBottom?: T;
+              height?: T;
+              welcomeTextColor?: T;
+              titleColor?: T;
+              descriptionColor?: T;
+              title?: T;
+              welcomeText?: T;
+              description?: T;
+              cta?:
+                | T
+                | {
+                    label?: T;
+                    type?: T;
+                    reference?: T;
+                    url?: T;
+                    newTab?: T;
+                  };
+              scrollAnimation?: T;
+              id?: T;
+              blockName?: T;
+            };
+        splitContent?:
+          | T
+          | {
+              title?: T;
+              content?: T;
+              backgroundImage?: T;
+              overlayOpacity?: T;
+              textColor?: T;
+              verticalPadding?: T;
+              enableButton?: T;
+              button?:
+                | T
+                | {
+                    label?: T;
+                    link?: T;
+                    newTab?: T;
+                    alignment?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        videoHero?:
+          | T
+          | {
+              mediaType?: T;
+              youtubeUrl?: T;
+              uploadedVideo?: T;
+              mobilePlaceholder?: T;
+              autoplay?: T;
+              loop?: T;
+              muted?: T;
+              controls?: T;
+              overlayOpacity?: T;
+              title?: T;
+              subtitle?: T;
+              description?: T;
+              enableButton?: T;
+              button?:
+                | T
+                | {
+                    label?: T;
+                    link?: T;
+                    newTab?: T;
+                  };
+              verticalPadding?: T;
+              id?: T;
+              blockName?: T;
+            };
+        imageGrid?:
+          | T
+          | {
+              heading?: T;
+              subheading?: T;
+              items?:
+                | T
+                | {
+                    richContent?: T;
+                    title?: T;
+                    image?: T;
+                    link?: T;
+                    buttonLabel?: T;
+                    newTab?: T;
+                    id?: T;
+                  };
+              transitionSpeed?: T;
+              columnHeight?: T;
+              desktopHeight?: T;
+              customDesktopHeight?: T;
+              buttonStyle?: T;
+              id?: T;
+              blockName?: T;
+            };
+        crossSectionCta?:
+          | T
+          | {
+              heading?: T;
+              items?:
+                | T
+                | {
+                    icon?: T;
+                    titlePrefix?: T;
+                    title?: T;
+                    description?: T;
+                    link?: T;
+                    newTab?: T;
+                    id?: T;
+                  };
+              columns?: T;
+              backgroundColor?: T;
+              verticalPadding?: T;
+              id?: T;
+              blockName?: T;
+            };
+        cards?:
+          | T
+          | {
+              heading?: T;
+              items?:
+                | T
+                | {
+                    image?: T;
+                    buttonLabel?: T;
+                    buttonLink?: T;
+                    newTab?: T;
+                    richContent?: T;
+                    id?: T;
+                  };
+              width?: T;
+              columns?: T;
+              cardHeight?: T;
+              backgroundColor?: T;
+              verticalPadding?: T;
+              id?: T;
+              blockName?: T;
+            };
+        slickerSlide?:
+          | T
+          | {
+              heading?: T;
+              slides?:
+                | T
+                | {
+                    image?: T;
+                    title?: T;
+                    description?: T;
+                    buttonLabel?: T;
+                    buttonLink?: T;
+                    newTab?: T;
+                    id?: T;
+                  };
+              showArrows?: T;
+              autoplay?: T;
+              autoplaySpeed?: T;
+              showDots?: T;
+              slidesPerView?: T;
+              gap?: T;
+              backgroundColor?: T;
+              backgroundOpacity?: T;
+              backgroundGradient?: T;
+              verticalPadding?: T;
+              width?: T;
+              id?: T;
+              blockName?: T;
+            };
+        menuTabs?:
+          | T
+          | {
+              heading?: T;
+              tabs?:
+                | T
+                | {
+                    tabName?: T;
+                    items?:
+                      | T
+                      | {
+                          title?: T;
+                          description?: T;
+                          price?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              columns?: T;
+              width?: T;
+              backgroundColor?: T;
+              verticalPadding?: T;
+              id?: T;
+              blockName?: T;
+            };
+        menuTable?:
+          | T
+          | {
+              heading?: T;
+              subheading?: T;
+              categories?:
+                | T
+                | {
+                    tabLabel?: T;
+                    sections?:
+                      | T
+                      | {
+                          sectionHeading?: T;
+                          menuItems?:
+                            | T
+                            | {
+                                itemName?: T;
+                                description?: T;
+                                price?: T;
+                                id?: T;
+                              };
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              columnsPerRow?: T;
+              tableStyle?: T;
+              backgroundColor?: T;
+              backgroundOpacity?: T;
+              verticalPadding?: T;
+              width?: T;
+              id?: T;
+              blockName?: T;
+            };
+        imageRow?:
+          | T
+          | {
+              images?:
+                | T
+                | {
+                    image?: T;
+                    alt?: T;
+                    link?: T;
+                    newTab?: T;
+                    id?: T;
+                  };
+              imageHeight?: T;
+              gap?: T;
+              desktopWidth?: T;
+              mobileWidth?: T;
+              borderRadius?: T;
+              boxShadow?: T;
+              justifyContent?: T;
+              verticalPadding?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   meta?:
     | T
@@ -1096,6 +2060,7 @@ export interface PagesSelect<T extends boolean = true> {
         title?: T;
         image?: T;
         description?: T;
+        keywords?: T;
       };
   publishedAt?: T;
   generateSlug?: T;
@@ -1139,6 +2104,7 @@ export interface ContentBlockSelect<T extends boolean = true> {
         size?: T;
         richText?: T;
         enableLink?: T;
+        alignment?: T;
         link?:
           | T
           | {
@@ -1151,6 +2117,9 @@ export interface ContentBlockSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  containerMaxWidth?: T;
+  backgroundColor?: T;
+  backgroundOpacity?: T;
   id?: T;
   blockName?: T;
 }
@@ -1160,6 +2129,17 @@ export interface ContentBlockSelect<T extends boolean = true> {
  */
 export interface MediaBlockSelect<T extends boolean = true> {
   media?: T;
+  width?: T;
+  alignment?: T;
+  enableBackground?: T;
+  backgroundColor?: T;
+  backgroundPadding?: T;
+  roundedCorners?: T;
+  enableOverlay?: T;
+  overlayOpacity?: T;
+  caption?: T;
+  link?: T;
+  newTab?: T;
   id?: T;
   blockName?: T;
 }
@@ -1226,7 +2206,13 @@ export interface PostsSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   caption?: T;
-  folder?: T;
+  cloudinaryPublicId?: T;
+  cloudinaryUrl?: T;
+  cloudinaryResourceType?: T;
+  cloudinaryFormat?: T;
+  cloudinaryVersion?: T;
+  originalUrl?: T;
+  transformedUrl?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1238,80 +2224,7 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
-  sizes?:
-    | T
-    | {
-        thumbnail?:
-          | T
-          | {
-              url?: T;
-              width?: T;
-              height?: T;
-              mimeType?: T;
-              filesize?: T;
-              filename?: T;
-            };
-        square?:
-          | T
-          | {
-              url?: T;
-              width?: T;
-              height?: T;
-              mimeType?: T;
-              filesize?: T;
-              filename?: T;
-            };
-        small?:
-          | T
-          | {
-              url?: T;
-              width?: T;
-              height?: T;
-              mimeType?: T;
-              filesize?: T;
-              filename?: T;
-            };
-        medium?:
-          | T
-          | {
-              url?: T;
-              width?: T;
-              height?: T;
-              mimeType?: T;
-              filesize?: T;
-              filename?: T;
-            };
-        large?:
-          | T
-          | {
-              url?: T;
-              width?: T;
-              height?: T;
-              mimeType?: T;
-              filesize?: T;
-              filename?: T;
-            };
-        xlarge?:
-          | T
-          | {
-              url?: T;
-              width?: T;
-              height?: T;
-              mimeType?: T;
-              filesize?: T;
-              filename?: T;
-            };
-        og?:
-          | T
-          | {
-              url?: T;
-              width?: T;
-              height?: T;
-              mimeType?: T;
-              filesize?: T;
-              filename?: T;
-            };
-      };
+  sizes?: T | {};
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1319,8 +2232,8 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface CategoriesSelect<T extends boolean = true> {
   title?: T;
-  generateSlug?: T;
   slug?: T;
+  image?: T;
   parent?: T;
   breadcrumbs?:
     | T
@@ -1589,18 +2502,6 @@ export interface PayloadJobsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-folders_select".
- */
-export interface PayloadFoldersSelect<T extends boolean = true> {
-  name?: T;
-  folder?: T;
-  documentsAndFolders?: T;
-  folderType?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents_select".
  */
 export interface PayloadLockedDocumentsSelect<T extends boolean = true> {
@@ -1666,6 +2567,7 @@ export interface Header {
  */
 export interface Footer {
   id: string;
+  layout?: ('simple' | 'advanced') | null;
   navItems?:
     | {
         link: {
@@ -1686,6 +2588,216 @@ export interface Footer {
         id?: string | null;
       }[]
     | null;
+  logo?: (string | null) | Media;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  socialBadges?:
+    | {
+        image: string | Media;
+        link?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  reachUs?: {
+    heading?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    hours?: string | null;
+    partnerHotel?: {
+      label?: string | null;
+      logo?: (string | null) | Media;
+      link?: string | null;
+      newTab?: boolean | null;
+    };
+  };
+  /**
+   * Paste the full embed URL from Google Maps
+   */
+  mapEmbedUrl?: string | null;
+  copyright?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "settings".
+ */
+export interface Setting {
+  id: string;
+  branding: {
+    logo: string | Media;
+    /**
+     * Optional. Used on transparent/dark sections.
+     */
+    logoDark?: (string | null) | Media;
+    logoWidthDesktop?: number | null;
+    logoWidthMobile?: number | null;
+    favicon?: (string | null) | Media;
+    favicon16?: (string | null) | Media;
+    appleTouchIcon?: (string | null) | Media;
+    manifest?: (string | null) | Media;
+    androidChrome192?: (string | null) | Media;
+    androidChrome512?: (string | null) | Media;
+  };
+  defaultSeo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (string | null) | Media;
+  };
+  /**
+   * Separate keywords with commas
+   */
+  keywords?: string | null;
+  /**
+   * e.g., +1 (501) 226-2345 (Leave blank to hide)
+   */
+  phoneNumber?: string | null;
+  navItems?:
+    | {
+        parentLink: {
+          type?: ('reference' | 'custom') | null;
+          newTab?: boolean | null;
+          reference?:
+            | ({
+                relationTo: 'pages';
+                value: string | Page;
+              } | null)
+            | ({
+                relationTo: 'posts';
+                value: string | Post;
+              } | null);
+          url?: string | null;
+          label: string;
+        };
+        /**
+         * Add sub‑links to create a dropdown menu.
+         */
+        children?:
+          | {
+              childLink: {
+                type?: ('reference' | 'custom') | null;
+                newTab?: boolean | null;
+                reference?:
+                  | ({
+                      relationTo: 'pages';
+                      value: string | Page;
+                    } | null)
+                  | ({
+                      relationTo: 'posts';
+                      value: string | Post;
+                    } | null);
+                url?: string | null;
+                label: string;
+              };
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  ctaButton: {
+    ctaLink: {
+      type?: ('reference' | 'custom') | null;
+      newTab?: boolean | null;
+      reference?:
+        | ({
+            relationTo: 'pages';
+            value: string | Page;
+          } | null)
+        | ({
+            relationTo: 'posts';
+            value: string | Post;
+          } | null);
+      url?: string | null;
+      label: string;
+    };
+  };
+  /**
+   * Overlay applied before the user scrolls.
+   */
+  headerGradient?: string | null;
+  headerOverlayOpacity?: number | null;
+  colors: {
+    primaryColor: string;
+    secondaryColor: string;
+    linkColor: string;
+    bodyBgColor: string;
+  };
+  /**
+   * Used on pages that do not specify their own background image.
+   */
+  defaultBackgroundImage?: (string | null) | Media;
+  /**
+   * Overlay colour for the default background.
+   */
+  defaultOverlayColor?: string | null;
+  /**
+   * 0 = fully transparent, 1 = solid.
+   */
+  defaultOverlayOpacity?: number | null;
+  /**
+   * Used when a page does not specify its own content width.
+   */
+  defaultContentWidth?: ('contained' | 'full') | null;
+  typography?: {
+    fontPreset?: ('luxury' | 'elegant' | 'minimal' | 'caribbean' | 'baskervvillePrompt') | null;
+    headingFontFamily?: string | null;
+    bodyFontFamily?: string | null;
+    h1FontSize?: string | null;
+    h1FontWeight?: string | null;
+    h2FontSize?: string | null;
+    h2FontWeight?: string | null;
+    h3FontSize?: string | null;
+    h3FontWeight?: string | null;
+    h4FontSize?: string | null;
+    h4FontWeight?: string | null;
+  };
+  hero?: {
+    headingFontFamily?: string | null;
+    subheadingFontFamily?: string | null;
+  };
+  buttons?: {
+    buttonBgColor?: string | null;
+    buttonTextColor?: string | null;
+    buttonHoverBgColor?: string | null;
+    buttonHoverTextColor?: string | null;
+    buttonBorderRadius?: string | null;
+  };
+  tracking?: {
+    /**
+     * Your GA4 measurement ID (starts with G-)
+     */
+    googleAnalyticsId?: string | null;
+    /**
+     * Container ID (starts with GTM-)
+     */
+    googleTagManagerId?: string | null;
+    /**
+     * Your Facebook/Meta Pixel ID (numeric)
+     */
+    metaPixelId?: string | null;
+    /**
+     * Paste any custom scripts to be inserted in the <head>.
+     */
+    customHeadScripts?: string | null;
+    /**
+     * Paste scripts to be placed at the end of the <body>.
+     */
+    customBodyScripts?: string | null;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1717,6 +2829,7 @@ export interface HeaderSelect<T extends boolean = true> {
  * via the `definition` "footer_select".
  */
 export interface FooterSelect<T extends boolean = true> {
+  layout?: T;
   navItems?:
     | T
     | {
@@ -1730,6 +2843,159 @@ export interface FooterSelect<T extends boolean = true> {
               label?: T;
             };
         id?: T;
+      };
+  logo?: T;
+  description?: T;
+  socialBadges?:
+    | T
+    | {
+        image?: T;
+        link?: T;
+        id?: T;
+      };
+  reachUs?:
+    | T
+    | {
+        heading?: T;
+        phone?: T;
+        email?: T;
+        hours?: T;
+        partnerHotel?:
+          | T
+          | {
+              label?: T;
+              logo?: T;
+              link?: T;
+              newTab?: T;
+            };
+      };
+  mapEmbedUrl?: T;
+  copyright?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "settings_select".
+ */
+export interface SettingsSelect<T extends boolean = true> {
+  branding?:
+    | T
+    | {
+        logo?: T;
+        logoDark?: T;
+        logoWidthDesktop?: T;
+        logoWidthMobile?: T;
+        favicon?: T;
+        favicon16?: T;
+        appleTouchIcon?: T;
+        manifest?: T;
+        androidChrome192?: T;
+        androidChrome512?: T;
+      };
+  defaultSeo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  keywords?: T;
+  phoneNumber?: T;
+  navItems?:
+    | T
+    | {
+        parentLink?:
+          | T
+          | {
+              type?: T;
+              newTab?: T;
+              reference?: T;
+              url?: T;
+              label?: T;
+            };
+        children?:
+          | T
+          | {
+              childLink?:
+                | T
+                | {
+                    type?: T;
+                    newTab?: T;
+                    reference?: T;
+                    url?: T;
+                    label?: T;
+                  };
+              id?: T;
+            };
+        id?: T;
+      };
+  ctaButton?:
+    | T
+    | {
+        ctaLink?:
+          | T
+          | {
+              type?: T;
+              newTab?: T;
+              reference?: T;
+              url?: T;
+              label?: T;
+            };
+      };
+  headerGradient?: T;
+  headerOverlayOpacity?: T;
+  colors?:
+    | T
+    | {
+        primaryColor?: T;
+        secondaryColor?: T;
+        linkColor?: T;
+        bodyBgColor?: T;
+      };
+  defaultBackgroundImage?: T;
+  defaultOverlayColor?: T;
+  defaultOverlayOpacity?: T;
+  defaultContentWidth?: T;
+  typography?:
+    | T
+    | {
+        fontPreset?: T;
+        headingFontFamily?: T;
+        bodyFontFamily?: T;
+        h1FontSize?: T;
+        h1FontWeight?: T;
+        h2FontSize?: T;
+        h2FontWeight?: T;
+        h3FontSize?: T;
+        h3FontWeight?: T;
+        h4FontSize?: T;
+        h4FontWeight?: T;
+      };
+  hero?:
+    | T
+    | {
+        headingFontFamily?: T;
+        subheadingFontFamily?: T;
+      };
+  buttons?:
+    | T
+    | {
+        buttonBgColor?: T;
+        buttonTextColor?: T;
+        buttonHoverBgColor?: T;
+        buttonHoverTextColor?: T;
+        buttonBorderRadius?: T;
+      };
+  tracking?:
+    | T
+    | {
+        googleAnalyticsId?: T;
+        googleTagManagerId?: T;
+        metaPixelId?: T;
+        customHeadScripts?: T;
+        customBodyScripts?: T;
       };
   updatedAt?: T;
   createdAt?: T;

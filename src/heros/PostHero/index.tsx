@@ -1,72 +1,100 @@
-import { formatDateTime } from 'src/utilities/formatDateTime'
+import { formatDateTime } from '@/utilities/formatDateTime'
 import React from 'react'
-
+import Image from 'next/image'
 import type { Post } from '@/payload-types'
-
-import { Media } from '@/components/Media'
 import { formatAuthors } from '@/utilities/formatAuthors'
+import { Breadcrumbs } from '@/components/Breadcrumbs'
+import configPromise from '@payload-config'
+import { getPayload } from 'payload'
 
-export const PostHero: React.FC<{
-  post: Post
-}> = ({ post }) => {
+export const PostHero: React.FC<{ post: Post }> = async ({ post }) => {
   const { categories, heroImage, populatedAuthors, publishedAt, title } = post
 
-  const hasAuthors =
-    populatedAuthors && populatedAuthors.length > 0 && formatAuthors(populatedAuthors) !== ''
+  const payload = await getPayload({ config: configPromise })
+  const settings = await payload.findGlobal({ slug: 'settings' })
+
+  const secondaryColor = settings?.colors?.secondaryColor || '#E6B800'
+  const linkColor = settings?.colors?.linkColor || '#FFD700'
+  const headingFont = settings?.typography?.headingFontFamily || 'Baskervville, serif'
+  const bodyFont = settings?.typography?.bodyFontFamily || 'Prompt, sans-serif'
+
+  const hasAuthors = populatedAuthors?.length && formatAuthors(populatedAuthors) !== ''
+
+  const breadcrumbItems = [
+    { label: 'Home', href: '/' },
+    { label: 'Blog', href: '/posts' },
+  ]
+
+  const primaryCategory = categories?.[0]
+  if (primaryCategory && typeof primaryCategory === 'object') {
+    breadcrumbItems.push({
+      label: primaryCategory.title,
+      href: `/posts/category/${primaryCategory.slug}`,
+    })
+  }
+  // Add empty href to satisfy strict types if needed
+  breadcrumbItems.push({ label: title, href: '' })
+
+  const formattedDate = publishedAt ? formatDateTime(publishedAt) : null
+
+  const heroImageUrl =
+    heroImage && typeof heroImage === 'object' && 'url' in heroImage ? heroImage.url : null
 
   return (
-    <div className="relative -mt-[10.4rem] flex items-end">
-      <div className="container z-10 relative lg:grid lg:grid-cols-[1fr_48rem_1fr] text-white pb-8">
-        <div className="col-start-1 col-span-1 md:col-start-2 md:col-span-2">
-          <div className="uppercase text-sm mb-6">
-            {categories?.map((category, index) => {
-              if (typeof category === 'object' && category !== null) {
-                const { title: categoryTitle } = category
-
-                const titleToUse = categoryTitle || 'Untitled category'
-
-                const isLast = index === categories.length - 1
-
-                return (
-                  <React.Fragment key={index}>
-                    {titleToUse}
-                    {!isLast && <React.Fragment>, &nbsp;</React.Fragment>}
-                  </React.Fragment>
-                )
-              }
-              return null
-            })}
-          </div>
-
-          <div className="">
-            <h1 className="mb-6 text-3xl md:text-5xl lg:text-6xl">{title}</h1>
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-4 md:gap-16">
-            {hasAuthors && (
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm">Author</p>
-
-                  <p>{formatAuthors(populatedAuthors)}</p>
-                </div>
-              </div>
-            )}
-            {publishedAt && (
-              <div className="flex flex-col gap-1">
-                <p className="text-sm">Date Published</p>
-
-                <time dateTime={publishedAt}>{formatDateTime(publishedAt)}</time>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      <div className="min-h-[80vh] select-none">
-        {heroImage && typeof heroImage !== 'string' && (
-          <Media fill priority imgClassName="-z-10 object-cover" resource={heroImage} />
+    <div className="relative -mt-[10.4rem] flex items-end min-h-[70vh]">
+      <div className="absolute inset-0">
+        {heroImageUrl ? (
+          <Image
+            src={heroImageUrl}
+            alt={title}
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-800" />
         )}
-        <div className="absolute pointer-events-none left-0 bottom-0 w-full h-1/2 bg-linear-to-t from-black to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+      </div>
+
+      <div className="container relative z-10 lg:grid lg:grid-cols-[1fr_48rem_1fr] text-white pb-8">
+        <div className="col-start-1 col-span-1 md:col-start-2 md:col-span-2">
+          <h1 className="mb-6 text-3xl md:text-5xl lg:text-6xl" style={{ fontFamily: headingFont }}>
+            {title}
+          </h1>
+
+          <div className="mb-4">
+            <Breadcrumbs items={breadcrumbItems} linkColor={linkColor} />
+          </div>
+
+          <div className="flex items-center gap-4 text-sm mb-6" style={{ fontFamily: bodyFont }}>
+            {primaryCategory && typeof primaryCategory === 'object' && (
+              <span
+                className="px-3 py-1 border-2"
+                style={{
+                  borderColor: secondaryColor,
+                  color: secondaryColor,
+                  fontFamily: headingFont,
+                }}
+              >
+                {primaryCategory.title}
+              </span>
+            )}
+            {formattedDate && (
+              <time dateTime={publishedAt!} className="text-white/80">
+                {formattedDate}
+              </time>
+            )}
+          </div>
+
+          {hasAuthors && (
+            <div className="flex flex-col gap-1" style={{ fontFamily: bodyFont }}>
+              <p className="text-sm text-white/60">Author</p>
+              <p>{formatAuthors(populatedAuthors)}</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
