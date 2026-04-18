@@ -3,11 +3,11 @@ import configPromise from '@payload-config'
 import { notFound } from 'next/navigation'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
-import { draftMode } from 'next/headers' // ✅ Import
+import { draftMode } from 'next/headers' // ✅ NEW
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/utilities/generateMeta'
-import { LivePreviewListener } from '@/components/LivePreviewListener' // ✅ Your existing component
+import { LivePreviewListener } from '@/components/LivePreviewListener' // ✅ NEW
 import type { Metadata } from 'next'
 
 type Args = {
@@ -15,7 +15,6 @@ type Args = {
 }
 
 const getPageData = cache(async (slug: string, draft = false) => {
-  // ✅ Accept draft flag
   const payload = await getPayload({ config: configPromise })
 
   const [pageResult, settings] = await Promise.all([
@@ -24,13 +23,15 @@ const getPageData = cache(async (slug: string, draft = false) => {
       where: { slug: { equals: slug } },
       limit: 1,
       depth: 1,
-      draft: draft, // ✅ Pass draft mode
+      draft: draft, // ✅ PASS DRAFT FLAG
       select: {
         title: true,
         slug: true,
         hero: true,
         layout: true,
         meta: true,
+        createdAt: true,
+        updatedAt: true,
       },
     }),
     payload.findGlobal({
@@ -43,7 +44,6 @@ const getPageData = cache(async (slug: string, draft = false) => {
   return { page, settings }
 })
 
-// Only cache published data; never cache draft data
 const getCachedPageData = (slug: string) =>
   unstable_cache(async () => getPageData(slug, false), [`page-${slug}`], {
     revalidate: 3600,
@@ -54,15 +54,13 @@ export default async function Page({ params }: Args) {
   const { slug } = await params
   const decodedSlug = decodeURIComponent(slug)
 
-  // ✅ Enable Draft Mode
-  const { isEnabled: isDraftMode } = await draftMode()
+  const { isEnabled: isDraftMode } = await draftMode() // ✅ ENABLE DRAFT MODE
 
-  // ✅ Fetch data with draft flag when previewing
   const { page, settings } = isDraftMode
-    ? await getPageData(decodedSlug, true) // Draft – no cache
+    ? await getPageData(decodedSlug, true)
     : process.env.NODE_ENV === 'production'
-      ? await getCachedPageData(decodedSlug) // Published + cached
-      : await getPageData(decodedSlug, false) // Published, dev
+      ? await getCachedPageData(decodedSlug)
+      : await getPageData(decodedSlug, false)
 
   if (!page) {
     notFound()
@@ -73,9 +71,7 @@ export default async function Page({ params }: Args) {
 
   return (
     <div style={{ backgroundColor: bodyBgColor, fontFamily: bodyFont }}>
-      {/* ✅ LivePreviewListener only renders during preview */}
-      {isDraftMode && <LivePreviewListener />}
-
+      {isDraftMode && <LivePreviewListener />} {/* ✅ RENDER LISTENER */}
       <RenderHero {...page.hero} />
       <RenderBlocks blocks={page.layout} />
     </div>
@@ -85,10 +81,7 @@ export default async function Page({ params }: Args) {
 export async function generateMetadata({ params }: Args): Promise<Metadata> {
   const { slug } = await params
   const decodedSlug = decodeURIComponent(slug)
-
-  // Metadata doesn't need draft data
   const { page } = await getPageData(decodedSlug, false)
-
   if (!page) return {}
   return generateMeta({ doc: page })
 }

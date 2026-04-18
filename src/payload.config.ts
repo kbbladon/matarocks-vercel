@@ -36,6 +36,12 @@ cloudinary.config({
 })
 
 export default buildConfig({
+  // ✅ Keep this one
+  serverURL: process.env.NEXT_PUBLIC_SERVER_URL || getServerSideURL(),
+  cors: [
+    getServerSideURL(),
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+  ].filter((url): url is string => url !== null),
   admin: {
     components: {
       beforeLogin: ['@/components/BeforeLogin'],
@@ -82,7 +88,8 @@ export default buildConfig({
     url: process.env.DATABASE_URL || '',
   }),
   collections: [Pages, Posts, Media, Categories, Users],
-  cors: [getServerSideURL()].filter(Boolean),
+  // ❌ Remove this duplicate cors line:
+  // cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer, Settings],
   plugins: [
     ...plugins,
