@@ -37,7 +37,7 @@ export const Pages: CollectionConfig<'pages'> = {
     create: authenticated,
     delete: authenticated,
     read: authenticatedOrPublished,
-    update: () => true, // 👈 Allow anyone for testing
+    update: authenticated, // 👈 Allow anyone for testing
   },
   defaultPopulate: {
     title: true,
