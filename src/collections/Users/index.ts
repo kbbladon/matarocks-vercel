@@ -21,7 +21,7 @@ export const Users: CollectionConfig = {
     cookies: {
       sameSite: 'None',
       secure: true,
-      domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+      //domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
     },
   },
   fields: [
