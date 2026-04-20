@@ -152,9 +152,11 @@ export const Header: React.FC<HeaderProps> = ({ settings }) => {
           backgroundImage: !isScrolled ? gradient : 'none',
           borderBottom: isScrolled ? `1px solid ${primaryColor}` : 'none',
         }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${
-          isScrolled ? 'bg-black/80 backdrop-blur-md shadow-sm' : 'bg-transparent'
-        }`}
+        className={`
+          sticky top-0 md:fixed md:top-0 md:left-0 md:right-0
+          w-full z-50 transition-all duration-500 ease-in-out
+          ${isScrolled ? 'bg-black/80 backdrop-blur-md shadow-sm' : 'bg-transparent'}
+        `}
       >
         <div className="flex justify-center">
           <div
@@ -201,7 +203,7 @@ export const Header: React.FC<HeaderProps> = ({ settings }) => {
                 )}
               </div>
 
-              {/* Desktop Navigation – unchanged */}
+              {/* Desktop Navigation */}
               <div className="flex-1 flex justify-center">
                 <nav className="hidden lg:flex flex-wrap justify-center gap-2 xl:gap-4 2xl:gap-8">
                   {navItems.map((item: any, idx: number) => {
@@ -257,7 +259,7 @@ export const Header: React.FC<HeaderProps> = ({ settings }) => {
                     </Link>
                   </div>
                 )}
-                {/* Mobile Hamburger Button – stripes now use secondaryColor */}
+                {/* Mobile Hamburger Button */}
                 <div className="lg:hidden">
                   <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-white">
                     <div className="w-6 h-5 flex flex-col justify-between">
@@ -286,7 +288,7 @@ export const Header: React.FC<HeaderProps> = ({ settings }) => {
         </div>
       </header>
 
-      {/* Mobile Drawer – background uses bodyBgColor, text/links use secondaryColor */}
+      {/* Mobile Drawer */}
       <div
         className={`fixed inset-0 z-50 transition-transform duration-500 lg:hidden ${
           isMenuOpen ? 'translate-x-0' : 'translate-x-full'

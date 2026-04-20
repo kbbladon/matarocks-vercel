@@ -175,7 +175,7 @@ export const SliderHero: React.FC<SliderHeroProps> = ({ sliderData }) => {
   }, [slides.length, staticContent?.overlayText])
 
   return (
-    <div className={`relative ${heightClass} w-full overflow-hidden -mt-24 pt-24`}>
+    <div className={`relative ${heightClass} w-full overflow-hidden md:-mt-24 md:pt-24 pt-24`}>
       {/* BACKGROUND IMAGES */}
       <div className="absolute inset-0 w-full h-full">
         {isSlide ? (
@@ -245,7 +245,7 @@ export const SliderHero: React.FC<SliderHeroProps> = ({ sliderData }) => {
 
       {/* RICH TEXT + CTA */}
       <div className="absolute inset-0 z-30 flex items-center justify-center text-white text-center">
-        <div className="w-full h-full flex flex-col items-center justify-center px-8 md:px-32 lg:px-48 xl:px-64">
+        <div className="w-full h-full flex flex-col items-center justify-center md:px-32 lg:px-48 xl:px-64 pt-24">
           <div className={`max-w-4xl ${hasAnimated ? 'animate-[cinematicIn_1s_0.1s_both]' : ''}`}>
             {staticContent?.overlayText ? (
               <RichText data={staticContent.overlayText} enableProse={false} />

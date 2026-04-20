@@ -27,9 +27,9 @@ type ImageGridProps = {
 }
 
 const heightMap = {
-  normal: 'h-[450px]',
-  tall: 'h-[550px]',
-  xtall: 'h-[650px]',
+  normal: 'min-h-[500px] sm:aspect-[4/3] lg:h-[450px] lg:aspect-auto',
+  tall: 'min-h-[560px] sm:aspect-[3/4] lg:h-[550px] lg:aspect-auto',
+  xtall: 'min-h-[640px] sm:aspect-[2/3] lg:h-[650px] lg:aspect-auto',
 }
 
 const speedMap = {
@@ -67,15 +67,15 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
     setHoveredIndex(null)
   }
 
-  const heightClass = heightMap[columnHeight] || 'h-[550px]'
+  const heightClass = heightMap[columnHeight] || heightMap.tall
   const transitionDuration = speedMap[transitionSpeed] || 0.9
 
-  // Desktop height override
+  // Desktop height override (applies to lg breakpoint)
   let desktopHeightClass = ''
-  if (desktopHeight === 'taller') desktopHeightClass = 'lg:h-[600px]'
-  else if (desktopHeight === 'xtall') desktopHeightClass = 'lg:h-[700px]'
+  if (desktopHeight === 'taller') desktopHeightClass = 'lg:h-[600px] lg:aspect-auto'
+  else if (desktopHeight === 'xtall') desktopHeightClass = 'lg:h-[700px] lg:aspect-auto'
   else if (desktopHeight === 'custom' && customDesktopHeight) {
-    desktopHeightClass = `lg:h-[${customDesktopHeight}px]`
+    desktopHeightClass = `lg:h-[${customDesktopHeight}px] lg:aspect-auto`
   }
 
   const transitionStyle = {
@@ -102,12 +102,15 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
         <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
           {items.map((item, idx) => {
             const isActive = idx === activeIndex
+            // Only scale on desktop
+            const scaleClass = isActive ? 'lg:scale-105' : 'scale-100'
             return (
               <div
                 key={idx}
                 className={cn(
                   'absolute inset-0 w-full h-full bg-cover bg-center',
-                  isActive ? 'opacity-100 scale-105' : 'opacity-0 scale-100',
+                  isActive ? 'opacity-100' : 'opacity-0',
+                  scaleClass,
                 )}
                 style={{
                   backgroundImage: `url(${item.image?.url || ''})`,
@@ -118,10 +121,16 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
           })}
         </div>
         {/* Dark overlay */}
-        <div className="absolute inset-0 bg-black/50 z-0" />
+        <div className="absolute inset-0 bg-black/60 z-0" />
 
-        {/* Grid Columns – responsive borders */}
-        <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Grid Columns */}
+        <div
+          className={cn(
+            'relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+            heightClass,
+            desktopHeightClass,
+          )}
+        >
           {items.map((item, index) => {
             const isHovered = hoveredIndex === index
             const isLastMobile = index === items.length - 1
@@ -135,19 +144,12 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
                 key={index}
                 className={cn(
                   'relative overflow-hidden cursor-pointer',
-                  heightClass,
-                  desktopHeightClass,
-                  // Mobile: bottom border (except last)
+                  // Borders (unchanged)
                   !isLastMobile && 'border-b border-white/20 sm:border-b-0',
-                  // Tablet: right border for odd columns
                   isOddTablet && 'sm:border-r border-white/20',
-                  // Tablet: bottom border for the first row (indices 0,1) if there is more than one row
                   isFirstRowTablet && 'sm:border-b border-white/20 lg:border-b-0',
-                  // Desktop: right border for all except last in row
                   isOddDesktop && 'lg:border-r border-white/20',
-                  // Remove tablet right border on even columns
                   !isOddTablet && 'sm:border-r-0',
-                  // Remove desktop right border on last column
                   isLastDesktop && 'lg:border-r-0',
                 )}
                 onMouseEnter={() => handleHover(index)}
@@ -161,10 +163,10 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
                   )}
                 />
 
-                {/* Content wrapper – moves up on hover */}
+                {/* Content wrapper */}
                 <div
                   className={cn(
-                    'absolute inset-0 flex flex-col items-center text-center p-6 pt-10 transition-transform duration-300 ease-out z-20',
+                    'absolute inset-0 flex flex-col items-center justify-center text-center p-6 transition-transform duration-300 ease-out z-20',
                     isHovered ? '-translate-y-6' : 'translate-y-0',
                   )}
                 >
@@ -174,7 +176,7 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
                     </div>
                   )}
                   {item.title && (
-                    <h3 className="text-2xl font-light text-white mb-2">{item.title}</h3>
+                    <h3 className="text-xl sm:text-2xl font-light text-white mb-2">{item.title}</h3>
                   )}
                   {/* Button appears below content on hover */}
                   <div

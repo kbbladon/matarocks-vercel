@@ -16,7 +16,7 @@ type CardGridItem = {
   cta?: {
     label?: string
     type?: 'internal' | 'external'
-    reference?: any // can be an object with relationTo/value or a populated page object
+    reference?: any
     url?: string
     newTab?: boolean
   }
@@ -50,28 +50,20 @@ function hexToRgb(hex: string) {
   }
 }
 
-// Updated getHref to handle nested reference.value.slug
 const getHref = (cta: CardGridItem['cta']): string => {
   if (!cta) return '#'
-
-  // Internal link: the reference could be in the format { relationTo, value: { slug } } or already populated { slug }
   if (cta.reference) {
-    // Case 1: reference is an object with a 'value' property (unpopulated link)
     if (typeof cta.reference === 'object' && 'value' in cta.reference && cta.reference.value) {
       const refValue = cta.reference.value
       if (typeof refValue === 'object' && 'slug' in refValue) {
         return `/${refValue.slug}`
       }
     }
-    // Case 2: reference is directly populated (depth > 0)
     if (typeof cta.reference === 'object' && 'slug' in cta.reference) {
       return `/${cta.reference.slug}`
     }
   }
-
-  // External link
   if (cta.url) return cta.url
-
   return '#'
 }
 
@@ -186,15 +178,17 @@ export const CardGridBlock: React.FC<CardGridProps> = ({
       <div
         className={
           width === 'full'
-            ? 'w-full px-6 md:px-10 lg:px-16'
-            : 'max-w-7xl mx-auto px-6 md:px-10 lg:px-16'
+            ? 'w-full px-4 sm:px-6 md:px-10 lg:px-16'
+            : 'max-w-7xl mx-auto px-4 sm:px-6 md:px-10 lg:px-16'
         }
       >
         {heading && (
-          <h2 className="text-3xl md:text-4xl text-center mb-12 font-light uppercase">{heading}</h2>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl text-center mb-8 sm:mb-12 font-light uppercase">
+            {heading}
+          </h2>
         )}
 
-        <div className={`grid gap-6 ${getGridCols()}`}>
+        <div className={`grid gap-4 sm:gap-6 ${getGridCols()}`}>
           {items.map((item, i) => {
             const isExpanded = expandedIndex === i
             return (
@@ -239,38 +233,46 @@ export const CardGridBlock: React.FC<CardGridProps> = ({
                   <div
                     className={cn(
                       'absolute bottom-0 left-0 right-0 z-20 transition-all duration-500 ease-out overflow-hidden',
-                      isExpanded ? 'inset-0' : 'h-20',
+                      isExpanded ? 'inset-0' : 'min-h-[5rem] sm:h-20',
                     )}
                     style={{ background: panelBg }}
                   >
-                    {/* Collapsed View */}
+                    {/* Collapsed View - Fully Responsive */}
                     <div
                       className={cn(
-                        'absolute bottom-0 left-0 right-0 h-20 px-6 flex items-center justify-between transition-opacity duration-300',
-                        isExpanded ? 'opacity-0' : 'opacity-100',
+                        'absolute bottom-0 left-0 right-0 min-h-[5rem] sm:h-20 px-4 sm:px-6 py-2',
+                        'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1',
+                        'transition-opacity duration-300',
+                        isExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100',
                       )}
                     >
-                      <h3 className="text-xl font-light uppercase">{item.title}</h3>
+                      <h3 className="text-base sm:text-lg md:text-xl font-medium uppercase leading-tight line-clamp-2 sm:line-clamp-1">
+                        {item.title}
+                      </h3>
                       {item.price !== undefined && item.price !== null && (
-                        <span className="text-xl font-light">{formatPrice(item.price)}</span>
+                        <span className="text-base sm:text-lg font-light whitespace-nowrap">
+                          {formatPrice(item.price)}
+                        </span>
                       )}
                     </div>
 
                     {/* Expanded Content */}
                     <div
                       className={cn(
-                        'absolute inset-0 p-6 flex flex-col transition-all duration-500 ease-out',
+                        'absolute inset-0 p-4 sm:p-6 flex flex-col transition-all duration-500 ease-out',
                         isExpanded ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0',
                       )}
                     >
-                      <div className="flex-1 overflow-y-auto space-y-4 text-white">
+                      <div className="flex-1 overflow-y-auto space-y-3 sm:space-y-4 text-white pr-1">
                         {item.richDescription && (
                           <div className="text-sm opacity-90">
                             <RichText data={item.richDescription} enableGutter={false} />
                           </div>
                         )}
                         {item.price !== undefined && item.price !== null && (
-                          <div className="text-lg font-semibold">{formatPrice(item.price)}</div>
+                          <div className="text-base sm:text-lg font-semibold">
+                            {formatPrice(item.price)}
+                          </div>
                         )}
                         {item.features && item.features.length > 0 && (
                           <ul className="text-sm space-y-1">
@@ -284,7 +286,7 @@ export const CardGridBlock: React.FC<CardGridProps> = ({
                         )}
                       </div>
 
-                      {/* CTA Button – only when expanded and a valid link exists */}
+                      {/* CTA Button */}
                       {(() => {
                         const href = getHref(item.cta)
                         if (href !== '#') {
@@ -294,7 +296,7 @@ export const CardGridBlock: React.FC<CardGridProps> = ({
                                 href={href}
                                 target={item.cta?.newTab ? '_blank' : undefined}
                                 rel={item.cta?.newTab ? 'noopener noreferrer' : undefined}
-                                className="inline-block px-6 py-2 text-sm font-medium border border-white text-white bg-transparent transition-all duration-300 hover:bg-[#FFD700] hover:text-black hover:border-[#FFD700]"
+                                className="inline-block w-full sm:w-auto px-6 py-2 text-sm font-medium border border-white text-white bg-transparent transition-all duration-300 hover:bg-[#FFD700] hover:text-black hover:border-[#FFD700]"
                               >
                                 {item.cta?.label || 'View Details'}
                               </Link>
