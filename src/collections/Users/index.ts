@@ -20,7 +20,7 @@ export const Users: CollectionConfig = {
     cookies: {
       sameSite: 'None', // 👈 Capital 'N'
       secure: true,
-      // Optional: domain: '.vercel.app',
+      domain: '.vercel.app', // 👈 Allow cookies across all vercel.app subdomains
     },
   },
   fields: [
