@@ -16,7 +16,13 @@ export const Users: CollectionConfig = {
     defaultColumns: ['name', 'email', 'roles'],
     useAsTitle: 'name',
   },
-  auth: true,
+  auth: {
+    cookies: {
+      sameSite: 'None', // 👈 Capital 'N'
+      secure: true,
+      // Optional: domain: '.vercel.app',
+    },
+  },
   fields: [
     {
       name: 'name',
