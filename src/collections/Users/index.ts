@@ -17,10 +17,11 @@ export const Users: CollectionConfig = {
     useAsTitle: 'name',
   },
   auth: {
+    tokenExpiration: 7200, // 2 hours
     cookies: {
-      sameSite: 'None', // 👈 Capital 'N'
+      sameSite: 'None',
       secure: true,
-      domain: '.vercel.app', // 👈 Allow cookies across all vercel.app subdomains
+      domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
     },
   },
   fields: [
