@@ -1,5 +1,5 @@
 'use client'
-import React, { useRef } from 'react'
+import React from 'react'
 import { useField } from '@payloadcms/ui'
 
 type ColorPickerProps = {
@@ -10,17 +10,16 @@ type ColorPickerProps = {
   }
 }
 
-// Predefined color palette
 const PRESET_COLORS = [
-  '#FFD700', // gold
-  '#E6B800', // dark gold
-  '#FFC0CB', // pink
-  '#87CEEB', // sky blue
-  '#98FB98', // mint
-  '#FFA07A', // light salmon
-  '#F5F5F5', // off-white
-  '#1E293B', // slate
-  '#000000', // black
+  '#FFD700',
+  '#E6B800',
+  '#FFC0CB',
+  '#87CEEB',
+  '#98FB98',
+  '#FFA07A',
+  '#F5F5F5',
+  '#1E293B',
+  '#000000',
 ]
 
 const ColorPicker: React.FC<ColorPickerProps> = ({ path, field }) => {
@@ -44,24 +43,23 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ path, field }) => {
   return (
     <div className="mb-5">
       {label && (
-        <label className="block mb-1 font-medium text-[--theme-text] text-sm">
+        <label className="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200">
           {label}
-          {required && <span className="text-[--theme-error] ml-1">*</span>}
+          {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
 
       <div className="flex items-center gap-3 mb-3">
-        {/* Color Swatch with clickable input */}
+        {/* Main swatch – fixed size, visible border, no bleeding */}
         <div
-          className="w-11 h-11 rounded-lg border border-[--theme-elevation-200] shadow-sm relative overflow-hidden cursor-pointer"
+          className="w-10 h-10 rounded-lg border-2 border-gray-300 dark:border-gray-600 shadow-sm overflow-hidden cursor-pointer shrink-0"
           style={{ backgroundColor: value }}
         >
           <input
             type="color"
             value={value}
             onChange={handleColorChange}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            style={{ pointerEvents: 'auto' }}
+            className="w-full h-full opacity-0 cursor-pointer"
           />
         </div>
 
@@ -71,24 +69,25 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ path, field }) => {
           value={value}
           onChange={handleTextChange}
           placeholder="#000000"
-          className="w-[110px] font-mono text-sm px-2 py-1.5 rounded-md border border-[--theme-elevation-200] bg-[--theme-input-bg] text-[--theme-text] outline-none focus:border-[--theme-primary]"
+          className="w-28 px-2 py-1.5 text-sm font-mono rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
 
-        {/* Value badge */}
-        <span className="font-mono text-xs bg-[--theme-elevation-100] px-2 py-1 rounded-md text-[--theme-text]">
+        {/* Color value badge */}
+        <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-700 dark:text-gray-300">
           {value}
         </span>
       </div>
 
-      {/* Preset swatches */}
+      {/* Preset swatches row */}
       <div className="flex flex-wrap gap-2">
         {PRESET_COLORS.map((color) => (
           <button
             key={color}
+            type="button"
             onClick={() => handlePresetClick(color)}
-            className="w-8 h-8 rounded-md border border-[--theme-elevation-200] cursor-pointer transition-transform hover:scale-110"
+            className="w-7 h-7 rounded border border-gray-300 dark:border-gray-600 hover:scale-110 transition-transform cursor-pointer"
             style={{ backgroundColor: color }}
-            aria-label={`Preset color ${color}`}
+            aria-label={`Select color ${color}`}
           />
         ))}
       </div>
