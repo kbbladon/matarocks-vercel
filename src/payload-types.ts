@@ -855,6 +855,45 @@ export interface Page {
         blockName?: string | null;
         blockType: 'imageRow';
       }
+    | {
+        /**
+         * Appears above the table as a heading
+         */
+        caption?: string | null;
+        columns?:
+          | {
+              heading: string;
+              columnType?: ('text' | 'currency') | null;
+              /**
+               * e.g. $, BZD$, USD
+               */
+              currencySymbol?: string | null;
+              alignment?: ('left' | 'center' | 'right') | null;
+              /**
+               * e.g. w-50, w-25
+               */
+              width?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        rows?:
+          | {
+              cells?:
+                | {
+                    value: string;
+                    id?: string | null;
+                  }[]
+                | null;
+              rowVariant?: ('default' | 'active' | 'success' | 'warning' | 'danger' | 'info') | null;
+              id?: string | null;
+            }[]
+          | null;
+        striped?: boolean | null;
+        hover?: boolean | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'table';
+      }
   )[];
   meta?: {
     title?: string | null;
@@ -2051,6 +2090,37 @@ export interface PagesSelect<T extends boolean = true> {
               boxShadow?: T;
               justifyContent?: T;
               verticalPadding?: T;
+              id?: T;
+              blockName?: T;
+            };
+        table?:
+          | T
+          | {
+              caption?: T;
+              columns?:
+                | T
+                | {
+                    heading?: T;
+                    columnType?: T;
+                    currencySymbol?: T;
+                    alignment?: T;
+                    width?: T;
+                    id?: T;
+                  };
+              rows?:
+                | T
+                | {
+                    cells?:
+                      | T
+                      | {
+                          value?: T;
+                          id?: T;
+                        };
+                    rowVariant?: T;
+                    id?: T;
+                  };
+              striped?: T;
+              hover?: T;
               id?: T;
               blockName?: T;
             };

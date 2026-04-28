@@ -34,6 +34,7 @@ const blockComponents: Record<string, any> = {
     import('@/blocks/MenuTable/Component').then((mod) => mod.MenuTableBlock),
   ),
   imageRow: dynamic(() => import('@/blocks/ImageRow/Component').then((mod) => mod.ImageRowBlock)),
+  table: dynamic(() => import('@/blocks/Table/Component').then((mod) => mod.TableBlockComponent)),
 }
 
 // Optional loading fallback for all blocks
@@ -43,7 +44,10 @@ const BlockLoading = () => (
   </div>
 )
 
-export const RenderBlocks: React.FC<{ blocks: Page['layout'][0][] }> = ({ blocks }) => {
+export const RenderBlocks: React.FC<{
+  blocks: Page['layout'][0][]
+  settings?: any // 👈 ADD THIS OPTIONAL PROP
+}> = ({ blocks, settings }) => {
   if (!blocks?.length) return null
 
   return (
@@ -53,8 +57,8 @@ export const RenderBlocks: React.FC<{ blocks: Page['layout'][0][] }> = ({ blocks
         const Block = blockComponents[blockType]
         if (!Block) return null
 
-        // Pass loading fallback to each dynamic import
-        return <Block key={index} {...block} />
+        // 👇 Spread settings into the block
+        return <Block key={index} {...block} settings={settings} />
       })}
     </Fragment>
   )

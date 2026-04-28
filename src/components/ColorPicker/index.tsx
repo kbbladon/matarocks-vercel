@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { useRef } from 'react'
 import { useField } from '@payloadcms/ui'
 
 type ColorPickerProps = {
@@ -10,7 +10,7 @@ type ColorPickerProps = {
   }
 }
 
-// Predefined color palette (you can customize these)
+// Predefined color palette
 const PRESET_COLORS = [
   '#FFD700', // gold
   '#E6B800', // dark gold
@@ -42,130 +42,52 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ path, field }) => {
   }
 
   return (
-    <div style={{ marginBottom: '1.25rem' }}>
-      {/* Label */}
+    <div className="mb-5">
       {label && (
-        <label
-          style={{
-            display: 'block',
-            marginBottom: '0.4rem',
-            fontWeight: 500,
-            color: 'var(--theme-text)',
-            fontSize: '0.9rem',
-          }}
-        >
+        <label className="block mb-1 font-medium text-[--theme-text] text-sm">
           {label}
-          {required && (
-            <span style={{ color: 'var(--theme-error)', marginLeft: '0.25rem' }}>*</span>
-          )}
+          {required && <span className="text-[--theme-error] ml-1">*</span>}
         </label>
       )}
 
-      {/* Main controls: color picker, hex input, value badge */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          marginBottom: '0.75rem',
-        }}
-      >
-        {/* Color Swatch */}
-        <label
-          style={{
-            width: '2.75rem',
-            height: '2.75rem',
-            borderRadius: '0.5rem',
-            border: '1px solid var(--theme-elevation-200)',
-            background: value,
-            cursor: 'pointer',
-            position: 'relative',
-            overflow: 'hidden',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
-          }}
+      <div className="flex items-center gap-3 mb-3">
+        {/* Color Swatch with clickable input */}
+        <div
+          className="w-11 h-11 rounded-lg border border-[--theme-elevation-200] shadow-sm relative overflow-hidden cursor-pointer"
+          style={{ backgroundColor: value }}
         >
           <input
             type="color"
             value={value}
             onChange={handleColorChange}
-            style={{
-              opacity: 0,
-              width: '100%',
-              height: '100%',
-              cursor: 'pointer',
-            }}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            style={{ pointerEvents: 'auto' }}
           />
-        </label>
+        </div>
 
-        {/* Hex Input */}
+        {/* Hex input */}
         <input
           type="text"
           value={value}
           onChange={handleTextChange}
           placeholder="#000000"
-          style={{
-            width: '110px',
-            fontFamily: 'monospace',
-            fontSize: '0.85rem',
-            padding: '0.4rem 0.5rem',
-            borderRadius: '0.375rem',
-            border: '1px solid var(--theme-elevation-200)',
-            backgroundColor: 'var(--theme-input-bg)',
-            color: 'var(--theme-text)',
-            outline: 'none',
-          }}
-          onFocus={(e) => {
-            e.currentTarget.style.borderColor = 'var(--theme-primary)'
-          }}
-          onBlur={(e) => {
-            e.currentTarget.style.borderColor = 'var(--theme-elevation-200)'
-          }}
+          className="w-[110px] font-mono text-sm px-2 py-1.5 rounded-md border border-[--theme-elevation-200] bg-[--theme-input-bg] text-[--theme-text] outline-none focus:border-[--theme-primary]"
         />
 
         {/* Value badge */}
-        <span
-          style={{
-            fontFamily: 'monospace',
-            fontSize: '0.75rem',
-            backgroundColor: 'var(--theme-elevation-100)',
-            padding: '0.25rem 0.5rem',
-            borderRadius: '0.375rem',
-            color: 'var(--theme-text)',
-          }}
-        >
+        <span className="font-mono text-xs bg-[--theme-elevation-100] px-2 py-1 rounded-md text-[--theme-text]">
           {value}
         </span>
       </div>
 
-      {/* Predefined colors row */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '0.5rem',
-          marginTop: '0.5rem',
-        }}
-      >
+      {/* Preset swatches */}
+      <div className="flex flex-wrap gap-2">
         {PRESET_COLORS.map((color) => (
           <button
             key={color}
             onClick={() => handlePresetClick(color)}
-            style={{
-              width: '2rem',
-              height: '2rem',
-              borderRadius: '0.375rem',
-              border: '1px solid var(--theme-elevation-200)',
-              background: color,
-              cursor: 'pointer',
-              transition: 'transform 0.1s ease',
-              padding: 0,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)'
-            }}
+            className="w-8 h-8 rounded-md border border-[--theme-elevation-200] cursor-pointer transition-transform hover:scale-110"
+            style={{ backgroundColor: color }}
             aria-label={`Preset color ${color}`}
           />
         ))}

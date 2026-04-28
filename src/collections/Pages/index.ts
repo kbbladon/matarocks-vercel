@@ -23,6 +23,7 @@ import { SlickerSlide } from '@/blocks/SlickerSlide/config'
 import { MenuTabs } from '@/blocks/MenuTabs/config'
 import { MenuTable } from '@/blocks/MenuTable/config'
 import { ImageRow } from '@/blocks/ImageRow/config'
+import { TableBlock } from '@/blocks/Table/config'
 import {
   MetaDescriptionField,
   MetaImageField,
@@ -150,6 +151,7 @@ export const Pages: CollectionConfig<'pages'> = {
                 MenuTabs,
                 MenuTable,
                 ImageRow,
+                TableBlock,
               ],
               required: true,
               admin: {
