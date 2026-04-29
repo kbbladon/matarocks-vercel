@@ -28,10 +28,11 @@ type ImageGridProps = {
   className?: string
 }
 
+// Increased min‑height for mobile (the first number in min‑h)
 const heightMap = {
-  normal: 'min-h-[500px] sm:aspect-[4/3] lg:h-[450px] lg:aspect-auto',
-  tall: 'min-h-[560px] sm:aspect-[3/4] lg:h-[550px] lg:aspect-auto',
-  xtall: 'min-h-[640px] sm:aspect-[2/3] lg:h-[650px] lg:aspect-auto',
+  normal: 'min-h-[560px] sm:min-h-[500px] lg:h-[450px] lg:aspect-auto',
+  tall: 'min-h-[620px] sm:min-h-[560px] lg:h-[550px] lg:aspect-auto',
+  xtall: 'min-h-[700px] sm:min-h-[640px] lg:h-[650px] lg:aspect-auto',
 }
 
 const speedMap = {
@@ -79,6 +80,10 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
     desktopHeightClass = `lg:h-[${customDesktopHeight}px] lg:aspect-auto`
   }
 
+  const transitionStyle = {
+    transition: `opacity ${transitionDuration}s ease, transform ${transitionDuration}s ease`,
+  }
+
   return (
     <section className={cn('relative w-full py-8 md:py-12', className)}>
       {/* Headings */}
@@ -92,21 +97,24 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
       )}
 
       {/* Full‑width Grid Container */}
-      <div className={cn('relative w-full', heightClass, desktopHeightClass)}>
-        {/* Shared Background Images – now with next/image */}
-        <div className="absolute inset-0 w-full h-full z-0">
+      <div className="relative w-full">
+        {/* Background Images Layer */}
+        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
           {items.map((item, idx) => {
             const isActive = idx === activeIndex
             const imageUrl = item.image?.url
             if (!imageUrl) return null
+            const scaleClass = isActive ? 'lg:scale-105' : 'scale-100'
+
             return (
               <div
                 key={idx}
                 className={cn(
-                  'absolute inset-0 w-full h-full transition-opacity transition-transform overflow-hidden',
-                  isActive ? 'opacity-100 lg:scale-105' : 'opacity-0 scale-100',
+                  'absolute inset-0 w-full h-full',
+                  isActive ? 'opacity-100' : 'opacity-0',
+                  scaleClass,
                 )}
-                style={{ transitionDuration: `${transitionDuration}s` }}
+                style={transitionStyle}
               >
                 <Image
                   src={optimizedCloudinaryUrl(imageUrl)}
@@ -114,6 +122,7 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
                   fill
                   className="object-cover"
                   sizes="100vw"
+                  priority={idx === 0}
                 />
               </div>
             )
@@ -123,8 +132,14 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
         {/* Dark overlay */}
         <div className="absolute inset-0 bg-black/60 z-0" />
 
-        {/* Grid Columns */}
-        <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 h-full">
+        {/* Grid Columns – now with taller mobile heights */}
+        <div
+          className={cn(
+            'relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+            heightClass,
+            desktopHeightClass,
+          )}
+        >
           {items.map((item, index) => {
             const isHovered = hoveredIndex === index
             const isLastMobile = index === items.length - 1
@@ -137,7 +152,7 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
               <div
                 key={index}
                 className={cn(
-                  'relative overflow-hidden cursor-pointer',
+                  'relative overflow-hidden cursor-pointer group',
                   !isLastMobile && 'border-b border-white/20 sm:border-b-0',
                   isOddTablet && 'sm:border-r border-white/20',
                   isFirstRowTablet && 'sm:border-b border-white/20 lg:border-b-0',
@@ -148,7 +163,7 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
                 onMouseEnter={() => handleHover(index)}
                 onMouseLeave={handleLeave}
               >
-                {/* "After" overlay */}
+                {/* Top dark overlay on hover */}
                 <div
                   className={cn(
                     'absolute top-0 left-0 w-full bg-[#051114] transition-all duration-400 z-10',
@@ -156,20 +171,20 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
                   )}
                 />
 
-                {/* Content wrapper */}
+                {/* Content wrapper – now with a bit more padding on mobile */}
                 <div
                   className={cn(
-                    'absolute inset-0 flex flex-col items-center justify-center text-center p-6 transition-transform duration-300 ease-out z-20',
+                    'absolute inset-0 flex flex-col items-center justify-center text-center p-4 sm:p-6 transition-transform duration-300 ease-out z-20',
                     isHovered ? '-translate-y-6' : 'translate-y-0',
                   )}
                 >
                   {item.richContent && (
-                    <div className="mb-2 text-sm opacity-90">
+                    <div className="mb-2 text-sm opacity-90 max-w-full">
                       <RichText data={item.richContent} enableGutter={false} />
                     </div>
                   )}
                   {item.title && (
-                    <h3 className="text-xl sm:text-2xl font-light text-white mb-2">{item.title}</h3>
+                    <h3 className="text-lg sm:text-2xl font-light text-white mb-2">{item.title}</h3>
                   )}
                   <div
                     className={cn(
