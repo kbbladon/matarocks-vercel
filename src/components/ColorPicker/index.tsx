@@ -49,31 +49,33 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ path, field }) => {
         </label>
       )}
 
-      <div className="flex items-center gap-3 mb-3">
-        {/* Main swatch – fixed size, visible border, no bleeding */}
+      {/* Flex row – now with flex-nowrap to prevent wrapping */}
+      <div className="flex flex-nowrap items-center gap-3 mb-3">
+        {/* Main swatch – perfectly clipped */}
         <div
-          className="w-10 h-10 rounded-lg border-2 border-gray-300 dark:border-gray-600 shadow-sm overflow-hidden cursor-pointer shrink-0"
+          className="relative w-10 h-10 rounded-lg border-2 border-gray-300 dark:border-gray-600 shadow-sm overflow-hidden cursor-pointer shrink-0"
           style={{ backgroundColor: value }}
         >
           <input
             type="color"
             value={value}
             onChange={handleColorChange}
-            className="w-full h-full opacity-0 cursor-pointer"
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer border-0"
+            style={{ boxShadow: 'none', outline: 'none' }}
           />
         </div>
 
-        {/* Hex input */}
+        {/* Hex input – slightly smaller to fit alongside swatch */}
         <input
           type="text"
           value={value}
           onChange={handleTextChange}
           placeholder="#000000"
-          className="w-28 px-2 py-1.5 text-sm font-mono rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-24 sm:w-28 px-2 py-1.5 text-sm font-mono rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
 
         {/* Color value badge */}
-        <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-700 dark:text-gray-300">
+        <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-700 dark:text-gray-300 shrink-0">
           {value}
         </span>
       </div>
@@ -85,8 +87,16 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ path, field }) => {
             key={color}
             type="button"
             onClick={() => handlePresetClick(color)}
-            className="w-7 h-7 rounded border border-gray-300 dark:border-gray-600 hover:scale-110 transition-transform cursor-pointer"
-            style={{ backgroundColor: color }}
+            className="rounded border cursor-pointer hover:scale-110 transition-transform"
+            style={{
+              width: '1.75rem',
+              height: '1.75rem',
+              backgroundColor: color,
+              borderColor: 'var(--theme-elevation-200, #d1d5db)',
+              padding: 0,
+              display: 'inline-block',
+              flexShrink: 0,
+            }}
             aria-label={`Select color ${color}`}
           />
         ))}
