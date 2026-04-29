@@ -6,6 +6,7 @@ import { formatAuthors } from '@/utilities/formatAuthors'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
+import { optimizedCloudinaryUrl } from '@/utilities/optimizedCloudinaryUrl'
 
 export const PostHero: React.FC<{ post: Post }> = async ({ post }) => {
   const { categories, heroImage, populatedAuthors, publishedAt, title } = post
@@ -32,13 +33,14 @@ export const PostHero: React.FC<{ post: Post }> = async ({ post }) => {
       href: `/posts/category/${primaryCategory.slug}`,
     })
   }
-  // Add empty href to satisfy strict types if needed
   breadcrumbItems.push({ label: title, href: '' })
 
   const formattedDate = publishedAt ? formatDateTime(publishedAt) : null
 
-  const heroImageUrl =
-    heroImage && typeof heroImage === 'object' && 'url' in heroImage ? heroImage.url : null
+  // Extract and optimize hero image URL
+  const heroImageUrlRaw =
+    heroImage && typeof heroImage === 'object' && 'url' in heroImage ? (heroImage as any).url : null
+  const heroImageUrl = heroImageUrlRaw ? optimizedCloudinaryUrl(heroImageUrlRaw) : null
 
   return (
     <div className="relative -mt-[10.4rem] flex items-end min-h-[70vh]">

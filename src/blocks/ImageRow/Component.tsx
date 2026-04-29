@@ -4,6 +4,7 @@ import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/utilities/ui'
+import { optimizedCloudinaryUrl } from '@/utilities/optimizedCloudinaryUrl'
 
 type ImageItem = {
   image?: { url: string; alt?: string }
@@ -46,6 +47,11 @@ export const ImageRowBlock: React.FC<ImageRowProps> = ({
 }) => {
   const paddingClass = paddingMap[verticalPadding] || 'py-12'
 
+  // Build a responsive sizes string from the percentage values
+  const mobileSizes = mobileWidth.replace('%', 'vw')
+  const desktopSizes = desktopWidth.replace('%', 'vw')
+  const imageSizes = `(max-width: 767px) ${mobileSizes}, ${desktopSizes}`
+
   return (
     <section className={cn('w-full', paddingClass, className)}>
       <div className="max-w-7xl mx-auto px-6 md:px-10 lg:px-16">
@@ -79,17 +85,22 @@ export const ImageRowBlock: React.FC<ImageRowProps> = ({
         <div className="image-row-container">
           {images.map((item, idx) => {
             const imageUrl = item.image?.url
-            const altText = item.alt || item.image?.alt || 'Image'
+            if (!imageUrl) return null // skip empty images
+
+            const altText = item.alt || item.image?.alt || ''
             const linkUrl = item.link
+
             const img = (
               <Image
-                src={imageUrl || ''}
+                src={optimizedCloudinaryUrl(imageUrl)}
                 alt={altText}
-                width={800}
+                width={800} // intrinsic size; actual display is determined by CSS + sizes
                 height={imageHeight}
                 className="image-row-img"
+                sizes={imageSizes} // tells the browser how wide the image will be
               />
             )
+
             if (linkUrl) {
               return (
                 <Link

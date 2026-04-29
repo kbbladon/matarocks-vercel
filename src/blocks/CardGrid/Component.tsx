@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { motion, useInView } from 'framer-motion'
 import RichText from '@/components/RichText'
 import { cn } from '@/utilities/ui'
+import { optimizedCloudinaryUrl } from '@/utilities/optimizedCloudinaryUrl'
 
 type CardGridItem = {
   title: string
@@ -121,7 +122,7 @@ const AnimatedCard = ({
 export const CardGridBlock: React.FC<CardGridProps> = ({
   heading,
   items = [],
-  hoverStyle = 'slideUp',
+  hoverStyle,
   overlayColor = '#000000',
   scrollAnimation = 'fadeUp',
   width = 'contained',
@@ -191,6 +192,9 @@ export const CardGridBlock: React.FC<CardGridProps> = ({
         <div className={`grid gap-4 sm:gap-6 ${getGridCols()}`}>
           {items.map((item, i) => {
             const isExpanded = expandedIndex === i
+            const rawUrl = item.image?.url || ''
+            const optimizedUrl = rawUrl ? optimizedCloudinaryUrl(rawUrl) : ''
+
             return (
               <AnimatedCard key={i} animation={scrollAnimation} index={i}>
                 <div
@@ -200,19 +204,21 @@ export const CardGridBlock: React.FC<CardGridProps> = ({
                   onMouseEnter={() => isDesktop && handleCardHover(i)}
                   onMouseLeave={() => isDesktop && handleCardLeave()}
                 >
-                  {/* Background Image */}
-                  <div className="absolute inset-0 overflow-hidden">
-                    <Image
-                      src={item.image?.url || ''}
-                      alt={item.title}
-                      fill
-                      sizes={sizesValue}
-                      className={cn(
-                        'object-cover transition-transform duration-700 ease-out',
-                        isExpanded ? 'scale-110' : 'scale-100',
-                      )}
-                    />
-                  </div>
+                  {/* Background Image – now with optimized Cloudinary URL */}
+                  {optimizedUrl && (
+                    <div className="absolute inset-0 overflow-hidden">
+                      <Image
+                        src={optimizedUrl}
+                        alt={item.title}
+                        fill
+                        sizes={sizesValue}
+                        className={cn(
+                          'object-cover transition-transform duration-700 ease-out',
+                          isExpanded ? 'scale-110' : 'scale-100',
+                        )}
+                      />
+                    </div>
+                  )}
 
                   {/* Dark Overlays */}
                   <div
@@ -237,7 +243,7 @@ export const CardGridBlock: React.FC<CardGridProps> = ({
                     )}
                     style={{ background: panelBg }}
                   >
-                    {/* Collapsed View - Fully Responsive */}
+                    {/* Collapsed View */}
                     <div
                       className={cn(
                         'absolute bottom-0 left-0 right-0 min-h-[5rem] sm:h-20 px-4 sm:px-6 py-2',

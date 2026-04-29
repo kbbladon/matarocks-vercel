@@ -5,10 +5,12 @@ import { notFound } from 'next/navigation'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { draftMode } from 'next/headers'
+import Image from 'next/image'
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/utilities/generateMeta'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
+import { optimizedCloudinaryUrl } from '@/utilities/optimizedCloudinaryUrl'
 import type { Metadata } from 'next'
 
 type Args = {
@@ -88,21 +90,26 @@ export default async function Page({ params }: Args) {
   const bgUrl = getImageUrl(page.backgroundImage)
   const contentWidth = page.contentWidth || 'contained'
 
-  // Show the overlay colour if opacity > 0 (regardless of background image)
   const showOverlay = overlayOpacity > 0
 
   return (
     <div style={{ backgroundColor: bodyBgColor, fontFamily: bodyFont }}>
       {isDraftMode && <LivePreviewListener />}
 
-      {/* All hero & content wrapped in a relative container for absolute layering */}
       <div className="relative">
-        {/* BACKGROUND IMAGE (if any) – behind the overlay */}
+        {/* BACKGROUND IMAGE – optimized with Next.js Image and Cloudinary */}
         {bgUrl && (
-          <img src={bgUrl} alt="" className="absolute inset-0 w-full h-full object-cover z-0" />
+          <Image
+            src={optimizedCloudinaryUrl(bgUrl)}
+            alt=""
+            fill
+            className="object-cover z-0"
+            priority // LCP candidate
+            sizes="100vw"
+          />
         )}
 
-        {/* PAGE OVERLAY COLOUR – always present if showOverlay */}
+        {/* PAGE OVERLAY COLOUR */}
         {showOverlay && (
           <div
             className="absolute inset-0 z-0"
@@ -110,7 +117,7 @@ export default async function Page({ params }: Args) {
           />
         )}
 
-        {/* HERO & LAYOUT BLOCKS – appear above the background */}
+        {/* HERO & LAYOUT BLOCKS */}
         <div className="relative z-10">
           <RenderHero {...page.hero} />
           <div className={contentWidth === 'contained' ? 'max-w-7xl mx-auto px-4' : ''}>

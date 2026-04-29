@@ -4,6 +4,7 @@ import React, { useRef } from 'react'
 import Link from 'next/link'
 import { motion, useInView } from 'framer-motion'
 import RichText from '@/components/RichText'
+import { optimizedCloudinaryUrl } from '@/utilities/optimizedCloudinaryUrl'
 
 type ParallaxHeroProps = {
   backgroundImage?: { url?: string }
@@ -13,7 +14,7 @@ type ParallaxHeroProps = {
     gradientDirection?: string
     gradientStart?: string
     gradientEnd?: string
-    gradientStopPosition?: number // 👈 new
+    gradientStopPosition?: number
   }
   paddingTop?: number
   paddingBottom?: number
@@ -83,17 +84,20 @@ export const ParallaxHeroBlock: React.FC<ParallaxHeroProps> = ({
   const contentRef = useRef(null)
   const isInView = useInView(contentRef, { once: true, margin: '-100px' })
 
-  const getBackgroundUrl = () => {
+  // Get and optimize the background image URL
+  const getOptimizedBackgroundUrl = (): string => {
     if (!backgroundImage?.url) return ''
     let url = backgroundImage.url
+    // Ensure it's absolute (if relative, prepend server URL)
     if (!url.startsWith('http')) {
       const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || ''
       url = `${baseUrl}${url}`
     }
-    return url
+    // Apply Cloudinary auto-optimizations (f_auto,q_auto)
+    return optimizedCloudinaryUrl(url)
   }
 
-  const bgUrl = getBackgroundUrl()
+  const bgUrl = getOptimizedBackgroundUrl()
 
   const getGradientStyle = () => {
     if (!overlay) return 'linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.6))'
@@ -108,8 +112,7 @@ export const ParallaxHeroBlock: React.FC<ParallaxHeroProps> = ({
       let end = overlay.gradientEnd || 'rgba(3, 11, 13, 0.3)'
       start = toRgba(start, 0.9)
       end = toRgba(end, 0.3)
-
-      const stop = overlay.gradientStopPosition ?? 30 // 👈 use provided stop or default 30
+      const stop = overlay.gradientStopPosition ?? 30
       return `linear-gradient(${direction}, ${start} ${stop}%, ${end})`
     }
     return 'linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.6))'
@@ -153,11 +156,12 @@ export const ParallaxHeroBlock: React.FC<ParallaxHeroProps> = ({
   }
 
   if (bgUrl) {
+    // Combine the gradient overlay with the optimized background image
     sectionStyles.backgroundImage = `${gradient}, url(${bgUrl})`
   } else {
     sectionStyles.backgroundImage = gradient
   }
-  console.log('Title data received:', JSON.stringify(title, null, 2))
+
   return (
     <section
       className="relative md:py-12 w-full overflow-hidden bg-cover bg-center bg-no-repeat"

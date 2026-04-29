@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useHeaderTheme } from '@/providers/HeaderTheme'
 import RichText from '@/components/RichText'
+import { optimizedCloudinaryUrl } from '@/utilities/optimizedCloudinaryUrl'
 
 type Slide = {
   media?: { url: string } | string
@@ -54,11 +55,6 @@ const isDev = process.env.NODE_ENV === 'development'
 export const SliderHero: React.FC<SliderHeroProps> = ({ sliderData }) => {
   const { setHeaderTheme } = useHeaderTheme()
 
-  // Debug logging (development only)
-  if (isDev) {
-    console.log('🎬 SliderHero rendering with sliderData:', sliderData)
-  }
-
   const {
     animationPreset = 'cinematic',
     staticContent,
@@ -70,20 +66,6 @@ export const SliderHero: React.FC<SliderHeroProps> = ({ sliderData }) => {
     height = 'full',
     overlayColor = '#000000',
   } = sliderData
-
-  if (isDev) {
-    console.log('🎬 SliderHero parsed values:', {
-      animationPreset,
-      staticContent,
-      slidesCount: slides.length,
-      autoplay,
-      autoplaySpeed,
-      showArrows,
-      showDots,
-      height,
-      overlayColor,
-    })
-  }
 
   const isSlide = animationPreset === 'slide'
   const isFade = animationPreset === 'fade'
@@ -164,16 +146,6 @@ export const SliderHero: React.FC<SliderHeroProps> = ({ sliderData }) => {
 
   const imageSizes = '100vw'
 
-  // Warning moved out of JSX
-  useEffect(() => {
-    if (slides.length === 0 && isDev) {
-      console.warn('⚠️ SliderHero: No slides provided.')
-    }
-    if (!staticContent?.overlayText && isDev) {
-      console.warn('⚠️ SliderHero: No overlayText in staticContent')
-    }
-  }, [slides.length, staticContent?.overlayText])
-
   return (
     <div className={`relative ${heightClass} w-full overflow-hidden md:-mt-24 md:pt-24 pt-24`}>
       {/* BACKGROUND IMAGES */}
@@ -181,10 +153,8 @@ export const SliderHero: React.FC<SliderHeroProps> = ({ sliderData }) => {
         {isSlide ? (
           <div ref={sliderRef} className="keen-slider h-full w-full">
             {slides.map((slide, idx) => {
-              const imageUrl = typeof slide.media === 'string' ? slide.media : slide.media?.url
-              if (!imageUrl && isDev) {
-                console.warn(`⚠️ SliderHero: Slide ${idx} has no image URL`)
-              }
+              const rawUrl = typeof slide.media === 'string' ? slide.media : slide.media?.url
+              const imageUrl = rawUrl ? optimizedCloudinaryUrl(rawUrl) : ''
               return (
                 <div key={idx} className="keen-slider__slide relative w-full h-full">
                   {imageUrl && (
@@ -206,7 +176,8 @@ export const SliderHero: React.FC<SliderHeroProps> = ({ sliderData }) => {
           </div>
         ) : (
           slides.map((slide, idx) => {
-            const imageUrl = typeof slide.media === 'string' ? slide.media : slide.media?.url
+            const rawUrl = typeof slide.media === 'string' ? slide.media : slide.media?.url
+            const imageUrl = rawUrl ? optimizedCloudinaryUrl(rawUrl) : ''
             const isActive = currentSlide === idx
             const cinematicTransform =
               isCinematic && isActive
@@ -214,10 +185,6 @@ export const SliderHero: React.FC<SliderHeroProps> = ({ sliderData }) => {
                   ? 'scale-110 translate-x-2'
                   : 'scale-110 -translate-x-2'
                 : 'scale-100'
-
-            if (!imageUrl && isDev) {
-              console.warn(`⚠️ SliderHero: Slide ${idx} has no image URL`)
-            }
 
             return (
               <div
@@ -230,7 +197,7 @@ export const SliderHero: React.FC<SliderHeroProps> = ({ sliderData }) => {
                     alt=""
                     fill
                     className={`object-cover transition-transform duration-[14000ms] ${cinematicTransform}`}
-                    priority={idx === 0} // first slide gets priority
+                    priority={idx === 0}
                     fetchPriority={idx === 0 ? 'high' : 'auto'}
                     loading={idx === 0 ? 'eager' : 'lazy'}
                     sizes={imageSizes}

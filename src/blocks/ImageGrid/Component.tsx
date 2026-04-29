@@ -1,9 +1,11 @@
 'use client'
 
 import React, { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/utilities/ui'
 import RichText from '@/components/RichText'
+import { optimizedCloudinaryUrl } from '@/utilities/optimizedCloudinaryUrl'
 
 type GridItem = {
   richContent?: any
@@ -70,7 +72,6 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
   const heightClass = heightMap[columnHeight] || heightMap.tall
   const transitionDuration = speedMap[transitionSpeed] || 0.9
 
-  // Desktop height override (applies to lg breakpoint)
   let desktopHeightClass = ''
   if (desktopHeight === 'taller') desktopHeightClass = 'lg:h-[600px] lg:aspect-auto'
   else if (desktopHeight === 'xtall') desktopHeightClass = 'lg:h-[700px] lg:aspect-auto'
@@ -78,59 +79,52 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
     desktopHeightClass = `lg:h-[${customDesktopHeight}px] lg:aspect-auto`
   }
 
-  const transitionStyle = {
-    transition: `opacity ${transitionDuration}s ease, transform ${transitionDuration}s ease`,
-  }
-
   return (
     <section className={cn('relative w-full py-8 md:py-12', className)}>
       {/* Headings */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 mb-6">
-        {(heading || subheading) && (
-          <div className="text-center">
-            {subheading && (
-              <p className="text-sm uppercase tracking-wider text-[#ffd28d] mb-2">{subheading}</p>
-            )}
-            {heading && <h2 className="text-3xl md:text-4xl font-light">{heading}</h2>}
-          </div>
-        )}
-      </div>
+      {(heading || subheading) && (
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 mb-6 text-center">
+          {subheading && (
+            <p className="text-sm uppercase tracking-wider text-[#ffd28d] mb-2">{subheading}</p>
+          )}
+          {heading && <h2 className="text-3xl md:text-4xl font-light">{heading}</h2>}
+        </div>
+      )}
 
       {/* Full‑width Grid Container */}
-      <div className="relative w-full">
-        {/* Shared Background Images */}
-        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+      <div className={cn('relative w-full', heightClass, desktopHeightClass)}>
+        {/* Shared Background Images – now with next/image */}
+        <div className="absolute inset-0 w-full h-full z-0">
           {items.map((item, idx) => {
             const isActive = idx === activeIndex
-            // Only scale on desktop
-            const scaleClass = isActive ? 'lg:scale-105' : 'scale-100'
+            const imageUrl = item.image?.url
+            if (!imageUrl) return null
             return (
               <div
                 key={idx}
                 className={cn(
-                  'absolute inset-0 w-full h-full bg-cover bg-center',
-                  isActive ? 'opacity-100' : 'opacity-0',
-                  scaleClass,
+                  'absolute inset-0 w-full h-full transition-opacity transition-transform overflow-hidden',
+                  isActive ? 'opacity-100 lg:scale-105' : 'opacity-0 scale-100',
                 )}
-                style={{
-                  backgroundImage: `url(${item.image?.url || ''})`,
-                  ...transitionStyle,
-                }}
-              />
+                style={{ transitionDuration: `${transitionDuration}s` }}
+              >
+                <Image
+                  src={optimizedCloudinaryUrl(imageUrl)}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="100vw"
+                />
+              </div>
             )
           })}
         </div>
+
         {/* Dark overlay */}
         <div className="absolute inset-0 bg-black/60 z-0" />
 
         {/* Grid Columns */}
-        <div
-          className={cn(
-            'relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
-            heightClass,
-            desktopHeightClass,
-          )}
-        >
+        <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 h-full">
           {items.map((item, index) => {
             const isHovered = hoveredIndex === index
             const isLastMobile = index === items.length - 1
@@ -144,7 +138,6 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
                 key={index}
                 className={cn(
                   'relative overflow-hidden cursor-pointer',
-                  // Borders (unchanged)
                   !isLastMobile && 'border-b border-white/20 sm:border-b-0',
                   isOddTablet && 'sm:border-r border-white/20',
                   isFirstRowTablet && 'sm:border-b border-white/20 lg:border-b-0',
@@ -155,7 +148,7 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
                 onMouseEnter={() => handleHover(index)}
                 onMouseLeave={handleLeave}
               >
-                {/* "After" overlay – expands from top on hover */}
+                {/* "After" overlay */}
                 <div
                   className={cn(
                     'absolute top-0 left-0 w-full bg-[#051114] transition-all duration-400 z-10',
@@ -178,7 +171,6 @@ export const ImageGridBlock: React.FC<ImageGridProps> = ({
                   {item.title && (
                     <h3 className="text-xl sm:text-2xl font-light text-white mb-2">{item.title}</h3>
                   )}
-                  {/* Button appears below content on hover */}
                   <div
                     className={cn(
                       'mt-4 transition-all duration-300',

@@ -7,6 +7,7 @@ import { cn } from '@/utilities/ui'
 import { CMSLink } from '@/components/Link'
 import { Logo } from '@/components/Logo/Logo'
 import { ThemeSelector } from '@/providers/Theme/ThemeSelector'
+import { optimizedCloudinaryUrl } from '@/utilities/optimizedCloudinaryUrl'
 
 type FooterProps = { footer?: any; className?: string }
 
@@ -78,12 +79,12 @@ export const Footer: React.FC<FooterProps> = ({ footer, className }) => {
     if (!isSvg && logoMedia?.url) {
       return (
         <Image
-          src={logoMedia.url}
+          src={optimizedCloudinaryUrl(logoMedia.url)}
           alt="Footer logo"
           width={200}
           height={80}
           className="h-auto w-auto max-w-[200px]"
-          unoptimized
+          // unoptimized removed – Next.js will further compress if needed
         />
       )
     }
@@ -109,24 +110,24 @@ export const Footer: React.FC<FooterProps> = ({ footer, className }) => {
                       <a href={badge.link} target="_blank" rel="noopener noreferrer">
                         {badge.image?.url && (
                           <Image
-                            src={badge.image.url}
+                            src={optimizedCloudinaryUrl(badge.image.url)}
                             alt="Badge"
                             width={80}
                             height={80}
                             className="h-auto w-auto max-w-[80px]"
-                            unoptimized
+                            // unoptimized removed
                           />
                         )}
                       </a>
                     ) : (
                       badge.image?.url && (
                         <Image
-                          src={badge.image.url}
+                          src={optimizedCloudinaryUrl(badge.image.url)}
                           alt="Badge"
                           width={80}
                           height={80}
                           className="h-auto w-auto max-w-[80px]"
-                          unoptimized
+                          // unoptimized removed
                         />
                       )
                     )}
@@ -171,12 +172,12 @@ export const Footer: React.FC<FooterProps> = ({ footer, className }) => {
                   >
                     {reachUs.partnerHotel.logo?.url && (
                       <Image
-                        src={reachUs.partnerHotel.logo.url}
+                        src={optimizedCloudinaryUrl(reachUs.partnerHotel.logo.url)}
                         alt="Partner hotel logo"
                         width={150}
                         height={60}
                         className="h-auto w-auto max-w-[150px]"
-                        unoptimized
+                        // unoptimized removed
                       />
                     )}
                   </a>
@@ -208,4 +209,5 @@ export const Footer: React.FC<FooterProps> = ({ footer, className }) => {
     </footer>
   )
 }
+
 export default Footer

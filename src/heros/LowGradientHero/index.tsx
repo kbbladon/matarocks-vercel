@@ -1,9 +1,10 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import RichText from '@/components/RichText'
-import { Media } from '@/components/Media'
 import { cn } from '@/utilities/ui'
+import { optimizedCloudinaryUrl } from '@/utilities/optimizedCloudinaryUrl'
 import type { Media as MediaType } from '@/payload-types'
 import type { DefaultTypedEditorState } from '@payloadcms/richtext-lexical'
 
@@ -12,7 +13,7 @@ type LowGradientHeroProps = {
   gradientSubtitle?: string | null
   gradientBackground?: MediaType | string | null
   gradientOverlayOpacity?: number | null
-  gradientHeight?: string | null // e.g., '520px', '60vh', 'min-h-[500px]'
+  gradientHeight?: string | null
   className?: string
 }
 
@@ -25,21 +26,30 @@ export const LowGradientHero: React.FC<LowGradientHeroProps> = ({
   className,
 }) => {
   const opacity = typeof gradientOverlayOpacity === 'number' ? gradientOverlayOpacity : 0.6
-  const height = gradientHeight ?? '520px' // Handles null case
+  const height = gradientHeight ?? '520px'
+
+  // Safely extract image URL and alt from the media object
+  let imgUrl = ''
+  let imgAlt = ''
+  if (gradientBackground && typeof gradientBackground === 'object' && 'url' in gradientBackground) {
+    imgUrl = (gradientBackground as any).url || ''
+    imgAlt = (gradientBackground as any).alt || ''
+  }
+
+  const optimizedSrc = imgUrl ? optimizedCloudinaryUrl(imgUrl) : ''
 
   return (
     <div className={cn('relative w-full overflow-hidden', className)} style={{ height }}>
       {/* Background Image */}
       <div className="absolute inset-0 w-full h-full">
-        {gradientBackground ? (
-          <Media
-            resource={gradientBackground}
+        {optimizedSrc ? (
+          <Image
+            src={optimizedSrc}
+            alt={imgAlt}
             fill
-            imgClassName="object-cover"
+            className="object-cover"
             priority
             sizes="100vw"
-            className="w-full h-full"
-            pictureClassName="w-full h-full"
           />
         ) : (
           <div className="w-full h-full bg-gray-800" />

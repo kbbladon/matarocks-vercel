@@ -1,15 +1,16 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useKeenSlider } from 'keen-slider/react'
 import 'keen-slider/keen-slider.css'
-import { Media } from '@/components/Media'
 import RichText from '@/components/RichText'
 import { cn } from '@/utilities/ui'
+import { optimizedCloudinaryUrl } from '@/utilities/optimizedCloudinaryUrl'
 
 type Slide = {
-  image?: any // Media object or string ID
+  image?: any // media object or ID
   title?: string
   description?: any
   buttonLabel?: string
@@ -47,6 +48,18 @@ const hexToRgba = (hex: string, alpha: number): string => {
   const g = parseInt(cleanHex.substring(2, 4), 16)
   const b = parseInt(cleanHex.substring(4, 6), 16)
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+// Helper to safely extract image URL and alt from a media object
+const getSlideMedia = (media: any): { url: string; alt: string } | null => {
+  if (!media || typeof media === 'string') return null
+  if (typeof media === 'object' && media.url) {
+    return {
+      url: media.url,
+      alt: media.alt || '',
+    }
+  }
+  return null
 }
 
 export const SlickerSlideComponent: React.FC<SlickerSlideProps> = ({
@@ -110,8 +123,9 @@ export const SlickerSlideComponent: React.FC<SlickerSlideProps> = ({
     }
   }
 
-  // Responsive image sizes
-  const imageSizes = '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
+  // Responsive image sizes – adjust according to slidesPerView
+  const sizePerSlide = perView > 1 ? `${100 / perView}vw` : '100vw'
+  const imageSizesDefault = `(max-width: 768px) 100vw, ${sizePerSlide}`
 
   return (
     <section className={cn('w-full', paddingClass, className)} style={bgStyle}>
@@ -122,41 +136,47 @@ export const SlickerSlideComponent: React.FC<SlickerSlideProps> = ({
 
         <div className="relative">
           <div ref={sliderRef} className="keen-slider">
-            {slides.map((slide, idx) => (
-              <div key={idx} className="keen-slider__slide">
-                <div className="relative rounded-xl overflow-hidden group aspect-[4/3]">
-                  {slide.image ? (
-                    <Media
-                      resource={slide.image}
-                      fill
-                      imgClassName="object-cover transition-transform duration-700 group-hover:scale-105"
-                      sizes={imageSizes}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gray-800" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                    {slide.title && <h3 className="text-2xl font-light mb-2">{slide.title}</h3>}
-                    {slide.description && (
-                      <div className="text-sm opacity-90">
-                        <RichText data={slide.description} enableGutter={false} />
-                      </div>
+            {slides.map((slide, idx) => {
+              const media = getSlideMedia(slide.image)
+              const imageUrl = media ? optimizedCloudinaryUrl(media.url) : ''
+              const altText = media?.alt || ''
+              return (
+                <div key={idx} className="keen-slider__slide">
+                  <div className="relative rounded-xl overflow-hidden group aspect-[4/3]">
+                    {media ? (
+                      <Image
+                        src={imageUrl}
+                        alt={altText}
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        sizes={imageSizesDefault}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gray-800" />
                     )}
-                    {slide.buttonLink && slide.buttonLabel && (
-                      <Link
-                        href={slide.buttonLink}
-                        target={slide.newTab ? '_blank' : undefined}
-                        rel={slide.newTab ? 'noopener noreferrer' : undefined}
-                        className="inline-block mt-4 px-6 py-2 border border-white text-white text-sm uppercase tracking-wider transition-all hover:bg-white hover:text-black"
-                      >
-                        {slide.buttonLabel}
-                      </Link>
-                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                      {slide.title && <h3 className="text-2xl font-light mb-2">{slide.title}</h3>}
+                      {slide.description && (
+                        <div className="text-sm opacity-90">
+                          <RichText data={slide.description} enableGutter={false} />
+                        </div>
+                      )}
+                      {slide.buttonLink && slide.buttonLabel && (
+                        <Link
+                          href={slide.buttonLink}
+                          target={slide.newTab ? '_blank' : undefined}
+                          rel={slide.newTab ? 'noopener noreferrer' : undefined}
+                          className="inline-block mt-4 px-6 py-2 border border-white text-white text-sm uppercase tracking-wider transition-all hover:bg-white hover:text-black"
+                        >
+                          {slide.buttonLabel}
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {showArrows && loaded && totalSlides > perView && (

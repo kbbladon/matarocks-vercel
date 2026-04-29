@@ -1,12 +1,11 @@
 'use client'
 import { useHeaderTheme } from '@/providers/HeaderTheme'
 import React, { useEffect } from 'react'
-
+import Image from 'next/image'
 import type { Page } from '@/payload-types'
-
 import { CMSLink } from '@/components/Link'
-import { Media } from '@/components/Media'
 import RichText from '@/components/RichText'
+import { optimizedCloudinaryUrl } from '@/utilities/optimizedCloudinaryUrl'
 
 export const HighImpactHero: React.FC<Page['hero']> = ({ links, media, richText }) => {
   const { setHeaderTheme } = useHeaderTheme()
@@ -14,6 +13,19 @@ export const HighImpactHero: React.FC<Page['hero']> = ({ links, media, richText 
   useEffect(() => {
     setHeaderTheme('dark')
   }, [setHeaderTheme])
+
+  // Safely extract the image URL from the media object
+  let imgUrl = ''
+  let imgAlt = ''
+  if (media && typeof media === 'object' && 'url' in media) {
+    imgUrl = (media as any).url || ''
+    imgAlt = (media as any).alt || ''
+  } else if (typeof media === 'string') {
+    // In rare cases media might be a string ID (not resolved), skip
+    imgUrl = ''
+  }
+
+  const optimizedSrc = imgUrl ? optimizedCloudinaryUrl(imgUrl) : ''
 
   return (
     <div
@@ -23,8 +35,15 @@ export const HighImpactHero: React.FC<Page['hero']> = ({ links, media, richText 
       {/* Background Image Layer */}
       <div className="absolute inset-0 w-full h-full">
         <div className="relative w-full h-full min-h-[80vh]">
-          {media && typeof media === 'object' && (
-            <Media fill imgClassName="object-cover" priority resource={media} sizes="100vw" />
+          {optimizedSrc && (
+            <Image
+              src={optimizedSrc}
+              alt={imgAlt}
+              fill
+              className="object-cover"
+              priority
+              sizes="100vw"
+            />
           )}
         </div>
         {/* Optional: dark overlay for better text contrast */}
