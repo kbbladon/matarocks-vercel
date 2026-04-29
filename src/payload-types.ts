@@ -860,6 +860,10 @@ export interface Page {
          * Appears above the table as a heading
          */
         caption?: string | null;
+        /**
+         * A secondary, less prominent line shown below the table caption.
+         */
+        subcaption?: string | null;
         columns?:
           | {
               heading: string;
@@ -2097,6 +2101,7 @@ export interface PagesSelect<T extends boolean = true> {
           | T
           | {
               caption?: T;
+              subcaption?: T;
               columns?:
                 | T
                 | {
