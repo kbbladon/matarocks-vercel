@@ -20,6 +20,7 @@ interface Row {
 }
 interface TableBlockProps {
   caption?: string | null
+  subcaption?: string | null // 👈 NEW
   columns?: Column[] | null
   rows?: Row[] | null
   striped?: boolean | null
@@ -54,6 +55,7 @@ const alignmentClasses: Record<string, string> = {
 // ======================
 export const TableBlockComponent: React.FC<TableBlockProps> = ({
   caption,
+  subcaption, // 👈 NEW
   columns,
   rows,
   striped = true,
@@ -75,12 +77,25 @@ export const TableBlockComponent: React.FC<TableBlockProps> = ({
             style={{ borderColor: secondaryColor + '80' }}
           >
             <table className="w-full border-collapse">
-              {caption && (
-                <caption
-                  className="text-base sm:text-lg font-semibold my-3 text-center"
-                  style={{ fontFamily: headingFont, color: linkColor }}
-                >
-                  {caption}
+              {/* Caption block */}
+              {(caption || subcaption) && (
+                <caption className="text-center mb-3">
+                  {caption && (
+                    <div
+                      className="text-base sm:text-lg font-semibold mb-1"
+                      style={{ fontFamily: headingFont, color: linkColor }}
+                    >
+                      {caption}
+                    </div>
+                  )}
+                  {subcaption && (
+                    <div
+                      className="text-sm sm:text-base text-gray-400 dark:text-gray-500"
+                      style={{ fontFamily: bodyFont }}
+                    >
+                      {subcaption}
+                    </div>
+                  )}
                 </caption>
               )}
 
@@ -110,8 +125,6 @@ export const TableBlockComponent: React.FC<TableBlockProps> = ({
                   const variant = row.rowVariant ?? 'default'
                   const variantStyle = rowVariantClasses[variant]
 
-                  // ----- STRIPE & HOVER -----
-                  // Apply to all rows, but inline background for default rows is omitted
                   const stripeClass =
                     striped && rIdx % 2 === 0 ? 'bg-gray-100/40 dark:bg-gray-800/50' : ''
                   const hoverClass = hover ? 'hover:bg-gray-200/20 dark:hover:bg-gray-700/30' : ''
@@ -122,7 +135,7 @@ export const TableBlockComponent: React.FC<TableBlockProps> = ({
                       className={`${stripeClass} ${hoverClass} ${variantStyle.extra} transition-colors`}
                       style={
                         variant === 'default'
-                          ? undefined // ← no inline background, Tailwind takes over
+                          ? undefined
                           : {
                               backgroundColor: variantStyle.bg,
                               color: variantStyle.text,
@@ -146,7 +159,12 @@ export const TableBlockComponent: React.FC<TableBlockProps> = ({
                               borderBottomColor: secondaryColor + '30',
                             }}
                           >
-                            {displayValue}
+                            {/* Currency values explicitly wrapped with body font */}
+                            {isCurrency ? (
+                              <span style={{ fontFamily: bodyFont }}>{displayValue}</span>
+                            ) : (
+                              displayValue
+                            )}
                           </td>
                         )
                       })}

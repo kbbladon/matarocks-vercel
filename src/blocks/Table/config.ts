@@ -15,6 +15,14 @@ export const TableBlock: Block = {
         description: 'Appears above the table as a heading',
       },
     },
+    {
+      name: 'subcaption',
+      type: 'text',
+      label: 'Subcaption (optional)',
+      admin: {
+        description: 'A secondary, less prominent line shown below the table caption.',
+      },
+    },
     // ---------- Columns ----------
     {
       name: 'columns',
