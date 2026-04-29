@@ -864,6 +864,10 @@ export interface Page {
          * A secondary, less prominent line shown below the table caption.
          */
         subcaption?: string | null;
+        /**
+         * Background colour for rows marked as “Active (bold subtotal)”.
+         */
+        activeRowColor?: string | null;
         columns?:
           | {
               heading: string;
@@ -2102,6 +2106,7 @@ export interface PagesSelect<T extends boolean = true> {
           | {
               caption?: T;
               subcaption?: T;
+              activeRowColor?: T;
               columns?:
                 | T
                 | {

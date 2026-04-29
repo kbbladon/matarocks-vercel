@@ -23,6 +23,18 @@ export const TableBlock: Block = {
         description: 'A secondary, less prominent line shown below the table caption.',
       },
     },
+    {
+      name: 'activeRowColor',
+      type: 'text',
+      label: 'Active Row Color',
+      defaultValue: '#e2e8f0',
+      admin: {
+        description: 'Background colour for rows marked as “Active (bold subtotal)”.',
+        components: {
+          Field: '@/components/ColorPicker',
+        } as any,
+      },
+    },
     // ---------- Columns ----------
     {
       name: 'columns',

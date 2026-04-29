@@ -20,7 +20,8 @@ interface Row {
 }
 interface TableBlockProps {
   caption?: string | null
-  subcaption?: string | null // 👈 NEW
+  subcaption?: string | null
+  activeRowColor?: string | null // 👈 NEW
   columns?: Column[] | null
   rows?: Row[] | null
   striped?: boolean | null
@@ -34,10 +35,9 @@ interface TableBlockProps {
   }
 }
 
-// ---------- Row variants ----------
+// ---------- Row variants (minus active, which is now dynamic) ----------
 const rowVariantClasses: Record<string, { bg: string; text: string; extra: string }> = {
   default: { bg: 'transparent', text: 'inherit', extra: '' },
-  active: { bg: '#e2e8f0', text: '#1a202c', extra: 'font-semibold' },
   success: { bg: '#bbf7d0', text: '#1a202c', extra: '' },
   warning: { bg: '#fef08a', text: '#1a202c', extra: '' },
   danger: { bg: '#fecaca', text: '#1a202c', extra: '' },
@@ -50,12 +50,10 @@ const alignmentClasses: Record<string, string> = {
   right: 'text-right',
 }
 
-// ======================
-// Component
-// ======================
 export const TableBlockComponent: React.FC<TableBlockProps> = ({
   caption,
-  subcaption, // 👈 NEW
+  subcaption,
+  activeRowColor, // 👈 NEW
   columns,
   rows,
   striped = true,
@@ -68,6 +66,9 @@ export const TableBlockComponent: React.FC<TableBlockProps> = ({
   const secondaryColor = settings?.secondaryColor || '#E6B800'
   const linkColor = settings?.linkColor || '#FFD700'
 
+  // Use the admin‑chosen active row colour, fallback to default
+  const activeBg = activeRowColor || '#e2e8f0'
+
   return (
     <section className="w-full py-6 lg:py-8">
       <div className="flex justify-center px-6">
@@ -77,7 +78,6 @@ export const TableBlockComponent: React.FC<TableBlockProps> = ({
             style={{ borderColor: secondaryColor + '80' }}
           >
             <table className="w-full border-collapse">
-              {/* Caption block */}
               {(caption || subcaption) && (
                 <caption className="text-center mb-3">
                   {caption && (
@@ -123,23 +123,34 @@ export const TableBlockComponent: React.FC<TableBlockProps> = ({
               <tbody>
                 {rows?.map((row, rIdx) => {
                   const variant = row.rowVariant ?? 'default'
-                  const variantStyle = rowVariantClasses[variant]
-
                   const stripeClass =
                     striped && rIdx % 2 === 0 ? 'bg-gray-100/40 dark:bg-gray-800/50' : ''
                   const hoverClass = hover ? 'hover:bg-gray-200/20 dark:hover:bg-gray-700/30' : ''
 
+                  // Determine background & text for this row variant
+                  let bgColor = 'transparent'
+                  let textColor: string | undefined = undefined
+                  let extraClass = ''
+
+                  if (variant === 'active') {
+                    bgColor = activeBg
+                    textColor = '#1a202c' // dark text on light background
+                    extraClass = 'font-semibold'
+                  } else if (variant !== 'default') {
+                    const preset = rowVariantClasses[variant]
+                    bgColor = preset.bg
+                    textColor = preset.text
+                    extraClass = preset.extra
+                  }
+
                   return (
                     <tr
                       key={rIdx}
-                      className={`${stripeClass} ${hoverClass} ${variantStyle.extra} transition-colors`}
+                      className={`${stripeClass} ${hoverClass} ${extraClass} transition-colors`}
                       style={
                         variant === 'default'
                           ? undefined
-                          : {
-                              backgroundColor: variantStyle.bg,
-                              color: variantStyle.text,
-                            }
+                          : { backgroundColor: bgColor, color: textColor }
                       }
                     >
                       {row.cells?.map((cell, cellIdx) => {
@@ -155,16 +166,11 @@ export const TableBlockComponent: React.FC<TableBlockProps> = ({
                               alignmentClasses[col?.alignment ?? 'left']
                             }`}
                             style={{
-                              fontFamily: bodyFont,
+                              fontFamily: bodyFont, // ★ all cells use body font
                               borderBottomColor: secondaryColor + '30',
                             }}
                           >
-                            {/* Currency values explicitly wrapped with body font */}
-                            {isCurrency ? (
-                              <span style={{ fontFamily: bodyFont }}>{displayValue}</span>
-                            ) : (
-                              displayValue
-                            )}
+                            {displayValue}
                           </td>
                         )
                       })}
